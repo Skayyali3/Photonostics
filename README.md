@@ -29,8 +29,6 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
 
 #### REMINDER: COMMON GND FOR ALL
 
-- - -
-
 ### Arduino IDE Libraries Needed:
 
 * **Wire.h:** Comes Preinstalled - For I2C Communication
@@ -61,7 +59,7 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
 
 * **HTML/CSS/JS/Jinja/Bootstrap - Frontend**
 
-* **PostgreSQL Database on Supabase
+* **PostgreSQL Database on Supabase**
 
 * **The Following Libraries:**
 
@@ -86,9 +84,9 @@ To check out the website: **[Click Here](https://photonvhealth.onrender.com/)**
 ## Licensing:
 
 The device itself is licensed under the MIT license - may be edited upon, improved, etc
-For further details: [Click Here](https://github.com/Skayyali3/PhotonVHealth/blob/main/Hardware/LICENSE)
+For further details: **[Click Here](https://github.com/Skayyali3/PhotonVHealth/blob/main/Hardware/LICENSE)**
 
-The website is licensed under the GNU GPL V3 license - For further details: [Click Here](https://github.com/Skayyali3/PhotonVHealth/blob/main/website/LICENSE)
+The website is licensed under the GNU GPL V3 license - For further details: **[Click Here](https://github.com/Skayyali3/PhotonVHealth/blob/main/website/LICENSE)**
 
 ## Author:
 **Saif Kayyali**
