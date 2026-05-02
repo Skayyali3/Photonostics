@@ -2,7 +2,7 @@ from flask import Flask
 from dotenv import load_dotenv
 import os
 
-from db import init_db
+from db import init_db, init_db_pool
 from routes.api import api
 from routes.web import web
 from routes.auth import auth
@@ -19,6 +19,7 @@ app.register_blueprint(api)
 app.register_blueprint(web)
 app.register_blueprint(auth)
 
+init_db_pool()
 init_db()
 
 if __name__ == "__main__":

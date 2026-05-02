@@ -72,6 +72,7 @@ float read_temperature() {
 
 void connect_via_https(HTTPClient &http, String url, bool isJson) {
   http.begin(client, url);
+  http.setTimeout(3000);
   if (isJson) {
     http.addHeader("Content-Type", "application/json");
   }
@@ -283,7 +284,7 @@ void loop() {
     Serial.println("──────────────────────");
     Serial.print("Your device's ID: "); Serial.println(deviceId);
     Serial.print("Light Intensity: "); Serial.print(percentageLight); Serial.println(" %");
-    Serial.print("Light:"); Serial.print(adjustedLight); Serial.println(" a.u.");
+    Serial.print("Light: "); Serial.print(adjustedLight); Serial.println(" a.u.");
     Serial.print("Temp: "); Serial.print(tempVal); Serial.println(" °C");
     Serial.print("Power: "); Serial.print(powerVal); Serial.println(" mW");
     Serial.print("Voltage: "); Serial.print(voltageVal); Serial.println(" V");

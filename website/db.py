@@ -1,63 +1,119 @@
-import sqlite3
+from psycopg2 import pool
+import psycopg2.extras
 import os
+from dotenv import load_dotenv
+from contextlib import contextmanager
+import urllib.parse as urlparse
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "data", "PhotonVHealth.db")
+load_dotenv()
+
+dbConnectionPool = None  
+
+def init_db_pool():
+    global dbConnectionPool
+
+    databaseURL = os.getenv("DATABASE_URL")
+
+    if databaseURL:
+        dbConnectionPool = pool.SimpleConnectionPool(1, 10, dsn=databaseURL)
+    else:
+        dbConnectionPool = pool.SimpleConnectionPool(
+            1,
+            10,
+            host=os.getenv("DB_HOST", "localhost"),
+            port=os.getenv("DB_PORT", 5432),
+            database=os.getenv("DB_NAME", "photonvhealth"),
+            user=os.getenv("DB_USER", "postgres"),
+            password=os.getenv("DB_PASSWORD", ""),
+        )
 
 def get_db():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    return sqlite3.connect(DB_PATH, check_same_thread=False, timeout = 5)
+    if dbConnectionPool is None:
+        init_db_pool()
+    return dbConnectionPool.getconn()
+
+def return_db(connection):
+    if dbConnectionPool is not None:
+        dbConnectionPool.putconn(connection)
 
 def init_db():
-    with get_db() as connection:
+    connection = get_db()
+    try:
         cursor = connection.cursor()
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE,
-            password_hashed TEXT,
-            email TEXT UNIQUE
+            id SERIAL PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password_hashed TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL
         )
         """)
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS devices (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER,
-            device_id TEXT UNIQUE, 
+            device_id TEXT UNIQUE NOT NULL, 
             nickname TEXT, 
             max_power INTEGER,
-            baseline_power REAL DEFAULT 0,
-            baseline_light REAL DEFAULT 0,
-            renew_baseline INTEGER DEFAULT 0,
-            FOREIGN KEY(user_id) REFERENCES users(id)
+            baseline_power DOUBLE PRECISION DEFAULT 0,
+            baseline_light DOUBLE PRECISION DEFAULT 0,
+            renew_baseline BOOLEAN DEFAULT FALSE,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """)
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS sensor_data (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            device_id TEXT,
-            power REAL,
-            light REAL,
-            light_percentage REAL,
-            temp REAL,
-            efficiency REAL,
-            health REAL,
-            recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(device_id) REFERENCES devices(device_id)
+            id SERIAL PRIMARY KEY,
+            device_id TEXT NOT NULL,
+            power DOUBLE PRECISION,
+            light DOUBLE PRECISION,
+            light_percentage DOUBLE PRECISION,
+            temp DOUBLE PRECISION,
+            efficiency DOUBLE PRECISION,
+            health DOUBLE PRECISION,
+            recorded_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(device_id) REFERENCES devices(device_id) ON DELETE CASCADE
         )
         """)
-    
+
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
             token TEXT PRIMARY KEY,
             user_id INTEGER NOT NULL,
-            expires_at DATETIME NOT NULL,
-            used INTEGER DEFAULT 0,
-            FOREIGN KEY(user_id) REFERENCES users(id)
+            expires_at TIMESTAMPTZ NOT NULL,
+            used BOOLEAN DEFAULT FALSE,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         )
         """)
 
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_sensor_device_time
+            ON sensor_data(device_id, recorded_at DESC);
+        """)
+
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_devices_user
+            ON devices(user_id);
+        """)
+
         connection.commit()
+
+    finally:
+        return_db(connection)
+        
+@contextmanager
+def get_cursor():
+    connection = get_db()
+    try:
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        yield cursor
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        cursor.close()
+        return_db(connection)

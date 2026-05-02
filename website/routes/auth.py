@@ -2,11 +2,11 @@ from flask import render_template, request, session, redirect, Blueprint
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, UTC
 import secrets
-import sqlite3
 import os
+import psycopg2
 
 from utils import send_reset_email
-from db import get_db
+from db import get_cursor
 
 APP_BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:5000/")
 
@@ -23,18 +23,17 @@ def login():
     if not account or not password:
         return render_template("login.html", logged_in=False, error="Username/email and password required")
  
-    with get_db() as connection:
-        cursor = connection.cursor()
+    with get_cursor() as cursor:
         cursor.execute(
-            "SELECT id, username, password_hashed FROM users WHERE username = ? OR email = ?",
+            "SELECT id, username, password_hashed FROM users WHERE username = %s OR email = %s",
             (account.lower(), account.lower())
         )
     
         user = cursor.fetchone()
  
-    if user and check_password_hash(user[2], password):
-        session["user_id"] = user[0]
-        session["username"] = user[1]
+    if user and check_password_hash(user['password_hashed'], password):
+        session["user_id"] = user['id']
+        session["username"] = user['username']
         return redirect("/dashboard")
  
     return render_template("login.html", logged_in=False, error="Invalid username/email or password")
@@ -56,13 +55,13 @@ def signup():
  
     hashed = generate_password_hash(password)
  
-    with get_db() as connection:
-        cursor = connection.cursor()
- 
+    with get_cursor() as cursor:
         try:
-            cursor.execute("INSERT INTO users (username, password_hashed, email) VALUES (?, ?, ?)", (username, hashed, email))
-            connection.commit()
-        except sqlite3.IntegrityError:
+            cursor.execute(
+                "INSERT INTO users (username, password_hashed, email) VALUES (%s, %s, %s)",
+                (username, hashed, email)
+            )
+        except psycopg2.IntegrityError:
             return render_template("signup.html", logged_in=False, error="Username or email already exists")
 
     return redirect("/login")
@@ -76,19 +75,17 @@ def forgot_password():
     if not email:
         return render_template("forgot_password.html", logged_in=False, error="Email is required.")
  
-    with get_db() as connection:
-        cursor = connection.cursor()
-        cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+    with get_cursor() as cursor:
+        cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
  
         if user:
             token = secrets.token_urlsafe(32)
             expires_at = datetime.now(UTC) + timedelta(hours=1)
             cursor.execute(
-                "INSERT INTO password_reset_tokens (token, user_id, expires_at) VALUES (?, ?, ?)",
-                (token, user[0], expires_at)
+                "INSERT INTO password_reset_tokens (token, user_id, expires_at) VALUES (%s, %s, %s)",
+                (token, user['id'], expires_at)
             )
-            connection.commit()
             resetLink = f"{APP_BASE_URL}/reset-password/{token}"
             try:
                 send_reset_email(email, resetLink)
@@ -99,11 +96,10 @@ def forgot_password():
  
 @auth.route("/reset-password/<token>", methods=["GET", "POST"])
 def reset_password(token):
-    with get_db() as connection:
-        cursor = connection.cursor()
+    with get_cursor() as cursor:
         cursor.execute("""
             SELECT user_id FROM password_reset_tokens
-            WHERE token = ? AND used = 0 AND expires_at > ?
+            WHERE token = %s AND used = FALSE AND expires_at > %s
         """, (token, datetime.now(UTC)))
         row = cursor.fetchone()
  
@@ -114,7 +110,7 @@ def reset_password(token):
             return render_template("reset_password.html", logged_in=False, invalid=False, token=token)
  
         password = request.form.get("password", "").strip()
-        confirm  = request.form.get("confirm_password", "")
+        confirm = request.form.get("confirm_password", "")
  
         if not password or len(password) < 8:
             return render_template("reset_password.html", logged_in=False, invalid=False, token=token, error="Password must be at least 8 characters.")
@@ -123,9 +119,8 @@ def reset_password(token):
             return render_template("reset_password.html", logged_in=False, invalid=False, token=token, error="Passwords do not match.")
  
         hashed = generate_password_hash(password)
-        cursor.execute("UPDATE users SET password_hashed = ? WHERE id = ?", (hashed, row[0]))
-        cursor.execute("UPDATE password_reset_tokens SET used = 1 WHERE token = ?", (token,))
-        connection.commit()
+        cursor.execute("UPDATE users SET password_hashed = %s WHERE id = %s", (hashed, row['user_id']))
+        cursor.execute("UPDATE password_reset_tokens SET used = TRUE WHERE token = %s", (token,))
  
     return redirect("/login?reset=1")
 

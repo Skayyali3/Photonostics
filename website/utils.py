@@ -1,5 +1,5 @@
 import re
-from db import get_db
+from db import get_cursor
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
 import os
@@ -17,15 +17,14 @@ def validate_device_id(device_id):
     return bool(re.fullmatch(r"PVH_[A-F0-9]{12}", device_id))
     
 def get_user_devices(user_id):
-    with get_db() as connection:
-        cursor = connection.cursor()
+    with get_cursor() as cursor:
         cursor.execute("""
             SELECT device_id, nickname, max_power, baseline_power, baseline_light
-            FROM devices WHERE user_id = ?
+            FROM devices WHERE user_id = %s
         """, (user_id,))
         rows = cursor.fetchall()
     
-    return [{"device_id": r[0],"nickname":  r[1],"max_power": r[2],"baseline_power": r[3],"baseline_light": r[4],} for r in rows]
+    return [{"device_id": r['device_id'], "nickname": r['nickname'], "max_power": r['max_power'], "baseline_power": r['baseline_power'], "baseline_light": r['baseline_light']} for r in rows]
 
 def send_reset_email(receiverAddress, resetLink):
     body = f"""Hi,

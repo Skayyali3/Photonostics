@@ -1,10 +1,10 @@
 from flask import render_template, request, session, redirect, Blueprint, jsonify, send_from_directory, Response
 from datetime import datetime
-import sqlite3
 import os
+import psycopg2
 
 from utils import get_user_devices
-from db import get_db
+from db import get_cursor
 
 web = Blueprint("web", __name__)
 
@@ -26,7 +26,7 @@ def graphs():
     if "user_id" not in session:
         return redirect("/")
     
-    return render_template("graphs.html", logged_in = True)
+    return render_template("graphs.html", logged_in=True)
 
 @web.route("/devices", methods=["GET", "POST"])
 def devices():
@@ -51,11 +51,9 @@ def devices():
             return jsonify(success=False, error=msg), 400
         return render_template("devices.html", logged_in=True, devices=get_user_devices(session["user_id"]), error=msg)
 
-    with get_db() as connection:
-        cursor = connection.cursor()
-
+    with get_cursor() as cursor:
         cursor.execute(
-            "SELECT 1 FROM devices WHERE device_id = ? AND user_id = ?",
+            "SELECT 1 FROM devices WHERE device_id = %s AND user_id = %s",
             (deviceID, session["user_id"])
         )
         addedAlready = cursor.fetchone()
@@ -76,11 +74,9 @@ def devices():
         try:
             cursor.execute("""
                 INSERT INTO devices (user_id, device_id, nickname, max_power)
-                VALUES (?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s)
             """, (session["user_id"], deviceID, nickname, maxPower))
-
-            connection.commit()
-        except sqlite3.IntegrityError:
+        except psycopg2.IntegrityError:
             msg = "A user already owns this device."
 
             if isAJAX:
@@ -107,10 +103,11 @@ def delete_device(device_id):
     if "user_id" not in session:
         return jsonify(success=False, error="Unauthorized"), 401
  
-    with get_db() as connection:
-        cursor = connection.cursor()
-        cursor.execute("DELETE FROM devices WHERE device_id = ? AND user_id = ?",(device_id, session["user_id"]))
-        connection.commit()
+    with get_cursor() as cursor:
+        cursor.execute(
+            "DELETE FROM devices WHERE device_id = %s AND user_id = %s",
+            (device_id, session["user_id"])
+        )
         deleted = cursor.rowcount
  
     if deleted:
@@ -122,16 +119,12 @@ def renew_device_baseline(device_id):
     if "user_id" not in session:
         return jsonify(success=False), 401
 
-    with get_db() as connection:
-        cursor = connection.cursor()
-
+    with get_cursor() as cursor:
         cursor.execute("""
             UPDATE devices
-            SET renew_baseline = 1
-            WHERE device_id = ? AND user_id = ?
+            SET renew_baseline = TRUE
+            WHERE device_id = %s AND user_id = %s
         """, (device_id, session["user_id"]))
-
-        connection.commit()
 
     return jsonify(success=True)
 

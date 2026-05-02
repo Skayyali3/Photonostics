@@ -14,7 +14,7 @@
 
 [✓] Integrate to device changing some logic to fit ESP32 needs (replaces LM35) & test it
 
-[] Use solder paste on my panel's soldering to ensure proper connection (don't have flux)
+[✓] Use solder paste on my panel's soldering to ensure proper connection (don't have flux)
 
 [] Enclosure work
 
@@ -44,9 +44,9 @@
 
 [✓] Split routes
 
-[] Add Push notifications
+[✓] Move to PostgreSQL database
 
-[] Add Google indexing
+[] Add Push notifications
 
 [] Add /graphs POST route
 
@@ -54,4 +54,4 @@
 
 [] Make everything responsive
 
-[] Move to PostgreSQL or MySQL database
+[] Add Google indexing
