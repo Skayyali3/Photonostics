@@ -46,8 +46,8 @@
 
 [✓] Move to PostgreSQL database
 
-[] Add Push notifications
+[✓] Add Push notifications
 
-[] Make everything responsive
+[] Make sure everything's responsive
 
 [] Add Google indexing

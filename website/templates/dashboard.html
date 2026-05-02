@@ -3,7 +3,16 @@
 
 {% block content %}
 <div class="page-content">
-  <h2 class="page-header">Live Data</h2>
+  <div class="dashboard-topbar">
+    <h2 class="page-header mb-0">Live Data</h2>
+
+    <div class="push-control">
+      <button id="push-toggle-btn" class="btn-push btn-push-off" disabled>
+        Enable Alerts
+      </button>
+      <span id="push-status-text" class="push-status-text">Checking…</span>
+    </div>
+  </div>
 
   {% if devices %}
   <div id="device-grid">

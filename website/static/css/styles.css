@@ -302,3 +302,69 @@ Devices
     color: #333;
     word-break: break-all;
 }
+
+/*
+Push Notifications
+*/
+
+.dashboard-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.push-control {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.btn-push {
+    border: none;
+    border-radius: 10px;
+    padding: 8px 18px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+    white-space: nowrap;
+}
+
+.btn-push:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.btn-push-off {
+    background: #198754;
+    color: white;
+}
+
+.btn-push-off:hover:not(:disabled) {
+    background: #157347;
+}
+
+.btn-push-on {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-push-on:hover:not(:disabled) {
+    background: #bb2d3b;
+}
+
+.push-status-text {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+@media (max-width: 600px) {
+    .dashboard-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

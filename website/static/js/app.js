@@ -32,22 +32,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const ts = panel.querySelector('.last-seen-time');
       if (ts && data.recorded_at) {
         const d = new Date(data.recorded_at);
-
         const pad = n => String(n).padStart(2, '0');
-
         const formatted =
           `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ` +
           `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-
         ts.textContent = formatted;
       }
     }
 
     function pollDevice(panel) {
       const deviceId = panel.dataset.deviceId;
-      fetch(`/api/latest/${encodeURIComponent(deviceId)}`).then(r => r.json()).then(json => {
-        if (json.success) updatePanel(panel, json.data);
-      }).catch(() => { });
+      fetch(`/api/latest/${encodeURIComponent(deviceId)}`)
+        .then(r => r.json())
+        .then(json => { if (json.success) updatePanel(panel, json.data); })
+        .catch(() => { });
     }
 
     devicePanels.forEach(panel => {
@@ -59,19 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const addForm = document.getElementById('add-device-form');
   if (addForm) {
     const alertBox = document.getElementById('form-alert');
-    const spinner = document.getElementById('add-spinner');
+    const spinner  = document.getElementById('add-spinner');
     const btnLabel = addForm.querySelector('.btn-label');
-    const tbody = document.getElementById('devices-tbody');
+    const tbody    = document.getElementById('devices-tbody');
     const emptyMsg = document.getElementById('empty-msg');
 
     function showAlert(msg) {
       alertBox.textContent = msg;
       alertBox.classList.remove('d-none');
     }
-
-    function hideAlert() {
-      alertBox.classList.add('d-none');
-    }
+    function hideAlert() { alertBox.classList.add('d-none'); }
 
     function setLoading(on) {
       spinner.classList.toggle('d-none', !on);
@@ -82,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     addForm.addEventListener('submit', e => {
       e.preventDefault();
       hideAlert();
-
       const formData = new FormData(addForm);
       setLoading(true);
 
@@ -101,10 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           const d = json.device;
-          if (!tbody) {
-            location.reload();
-            return;
-          }
+          if (!tbody) { location.reload(); return; }
 
           if (emptyMsg) emptyMsg.remove();
 
@@ -119,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </td>`;
           tbody.appendChild(tr);
           bindDelete(tr.querySelector('.delete-btn'));
-
           addForm.reset();
         })
         .catch(() => {
@@ -156,6 +146,180 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.delete-btn').forEach(bindDelete);
   }
 
+  document.querySelectorAll('.renew-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const deviceId = btn.dataset.id;
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+
+      fetch(`/devices/${encodeURIComponent(deviceId)}/renew`, { method: 'POST' })
+        .then(r => r.json())
+        .then(json => {
+          if (json.success) {
+            btn.textContent = 'Requested!';
+            setTimeout(() => { btn.disabled = false; btn.textContent = 'Renew Baseline'; }, 3000);
+          } else {
+            btn.textContent = 'Failed';
+            setTimeout(() => { btn.disabled = false; btn.textContent = 'Renew Baseline'; }, 2000);
+          }
+        })
+        .catch(() => {
+          btn.textContent = 'Error';
+          setTimeout(() => { btn.disabled = false; btn.textContent = 'Renew Baseline'; }, 2000);
+        });
+    });
+  });
+
+  const pushBtn = document.getElementById('push-toggle-btn');
+  if (!pushBtn) return;
+
+  const pushStatus = document.getElementById('push-status-text');
+
+  function setPushUI(subscribed) {
+    if (subscribed) {
+      pushBtn.textContent    = 'Disable Alerts';
+      pushBtn.dataset.active = 'true';
+      pushBtn.classList.remove('btn-push-off');
+      pushBtn.classList.add('btn-push-on');
+      if (pushStatus) pushStatus.textContent = 'Push alerts are enabled for this browser.';
+    } else {
+      pushBtn.textContent    = 'Enable Alerts';
+      pushBtn.dataset.active = 'false';
+      pushBtn.classList.remove('btn-push-on');
+      pushBtn.classList.add('btn-push-off');
+      if (pushStatus) pushStatus.textContent = 'You will not receive push alerts.';
+    }
+  }
+
+  function setPushUIError(msg) {
+    pushBtn.disabled = false;
+    if (pushStatus) pushStatus.textContent = msg;
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw     = atob(base64);
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  }
+
+  async function initPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      pushBtn.disabled = true;
+      if (pushStatus) pushStatus.textContent = 'Push notifications are not supported in this browser.';
+      return;
+    }
+
+    let reg;
+    try {
+      reg = await navigator.serviceWorker.register('/sw.js');
+      await navigator.serviceWorker.ready;
+    } catch (err) {
+      setPushUIError('Service worker registration failed.');
+      console.error(err);
+      return;
+    }
+
+    const existing = await reg.pushManager.getSubscription();
+    if (existing) {
+      try {
+        const res  = await fetch(`/api/push/status?endpoint=${encodeURIComponent(existing.endpoint)}`);
+        const json = await res.json();
+        setPushUI(json.subscribed === true);
+      } catch {
+        setPushUI(true);
+      }
+    } else {
+      setPushUI(false);
+    }
+
+    pushBtn.disabled = false;
+
+    pushBtn.addEventListener('click', async () => {
+      pushBtn.disabled = true;
+      const isActive = pushBtn.dataset.active === 'true';
+
+      if (isActive) {
+        try {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) {
+            await fetch('/api/push/subscribe', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ endpoint: sub.endpoint }),
+            });
+            await sub.unsubscribe();
+          }
+          setPushUI(false);
+        } catch (err) {
+          setPushUIError('Could not unsubscribe. Please try again.');
+          console.error(err);
+        }
+        pushBtn.disabled = false;
+
+      } else {
+        if (Notification.permission === 'denied') {
+          setPushUIError('Notifications blocked. Please allow them in your browser settings.');
+          pushBtn.disabled = false;
+          return;
+        }
+
+        if (Notification.permission !== 'granted') {
+          const perm = await Notification.requestPermission();
+          if (perm !== 'granted') {
+            setPushUIError('Notification permission not granted.');
+            pushBtn.disabled = false;
+            return;
+          }
+        }
+
+        let vapidKey;
+        try {
+          const keyRes = await fetch('/api/push/vapid-public-key');
+          const keyJson = await keyRes.json();
+          if (!keyJson.success) throw new Error(keyJson.error);
+          vapidKey = keyJson.key;
+        } catch (err) {
+          setPushUIError('Could not fetch server key. Push may not be configured.');
+          pushBtn.disabled = false;
+          console.error(err);
+          return;
+        }
+
+        let subscription;
+        try {
+          subscription = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapidKey),
+          });
+        } catch (err) {
+          setPushUIError('Subscription failed. Please try again.');
+          pushBtn.disabled = false;
+          console.error(err);
+          return;
+        }
+
+        try {
+          const saveRes = await fetch('/api/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(subscription.toJSON()),
+          });
+          const saveJson = await saveRes.json();
+          if (!saveJson.success) throw new Error(saveJson.error);
+          setPushUI(true);
+        } catch (err) {
+          setPushUIError('Could not save subscription. Please try again.');
+          await subscription.unsubscribe();
+          console.error(err);
+        }
+        pushBtn.disabled = false;
+      }
+    });
+  }
+
+  initPush();
+
   function escHtml(str) {
     return String(str)
       .replace(/&/g, '&amp;')
@@ -163,43 +327,5 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
-
-  document.querySelectorAll('.renew-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const deviceId = btn.dataset.id;
-
-      btn.disabled = true;
-      btn.textContent = 'Sending...';
-
-      fetch(`/devices/${encodeURIComponent(deviceId)}/renew`, {
-        method: 'POST'
-      })
-        .then(r => r.json())
-        .then(json => {
-          if (json.success) {
-            btn.textContent = 'Requested!';
-            setTimeout(() => {
-              btn.disabled = false;
-              btn.textContent = 'Renew Baseline';
-            }, 3000);
-          } else {
-            btn.disabled = false;
-            btn.textContent = 'Failed';
-            setTimeout(() => {
-              btn.disabled = false;
-              btn.textContent = 'Renew Baseline';
-            }, 2000);
-          }
-        })
-        .catch(() => {
-          btn.disabled = false;
-          btn.textContent = 'Error';
-          setTimeout(() => {
-            btn.disabled = false;
-            btn.textContent = 'Renew Baseline';
-          }, 2000);
-        });
-    });
-  });
 
 });

@@ -6,6 +6,7 @@ from db import init_db, init_db_pool
 from routes.api import api
 from routes.web import web
 from routes.auth import auth
+from routes.push import push_bp
 
 load_dotenv()
 
@@ -18,6 +19,7 @@ if not app.secret_key:
 app.register_blueprint(api)
 app.register_blueprint(web)
 app.register_blueprint(auth)
+app.register_blueprint(push_bp)
 
 init_db_pool()
 init_db()

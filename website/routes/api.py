@@ -1,8 +1,30 @@
 from flask import Blueprint, jsonify, request, session
 from db import get_cursor
 from utils import validate_device_id
+from routes.push import check_and_send_alerts
 
 api = Blueprint("api", __name__, url_prefix="/api")
+
+def _post_data_alert_hook(device_id: str, current_data: dict) -> None:
+    with get_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT power, light
+            FROM sensor_data
+            WHERE device_id = %s
+            ORDER BY recorded_at DESC
+            OFFSET 1 LIMIT 1
+            """,
+            (device_id,),
+        )
+        prevRow = cursor.fetchone()
+ 
+    prev = dict(prevRow) if prevRow else None
+    try:
+        check_and_send_alerts(device_id, current_data, prev)
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).error("Alert check failed: %s", exc)
 
 @api.route("/register_device", methods=["POST"])
 def register_device():
@@ -82,6 +104,11 @@ def api_data():
             INSERT INTO sensor_data (device_id, power, light, light_percentage, temp, efficiency, health)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (device_id, power, light, lightIntensity, temp, efficiency, health))
+        
+        _post_data_alert_hook(device_id, {
+            "power": power, "light" : light,
+            "temp" : temp, "efficiency" : efficiency
+        })
  
     return jsonify(success=True, health=round(health, 1))
  
