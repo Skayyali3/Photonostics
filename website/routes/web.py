@@ -1,4 +1,4 @@
-from flask import render_template, request, session, redirect, Blueprint, jsonify, send_from_directory, Response
+from flask import render_template, request, session, redirect, Blueprint, jsonify, send_from_directory, Response, current_app
 from datetime import datetime
 import os
 import psycopg2
@@ -137,3 +137,10 @@ def sitemap():
 @web.route("/health")
 def health():
     return "OK", 200
+
+@web.route('/sw.js')
+def service_worker():
+    response = send_from_directory(os.path.join(current_app.root_path, 'static'),'sw.js', mimetype='application/javascript')
+    response.headers['Service-Worker-Allowed'] = '/'
+    response.headers['Cache-Control'] = 'no-cache'
+    return response

@@ -65,9 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const addForm = document.getElementById('add-device-form');
   if (addForm) {
     const alertBox = document.getElementById('form-alert');
-    const spinner  = document.getElementById('add-spinner');
+    const spinner = document.getElementById('add-spinner');
     const btnLabel = addForm.querySelector('.btn-label');
-    const tbody    = document.getElementById('devices-tbody');
+    const tbody = document.getElementById('devices-tbody');
     const emptyMsg = document.getElementById('empty-msg');
 
     function showAlert(msg) {
@@ -185,14 +185,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setPushUI(subscribed) {
     if (subscribed) {
-      pushBtn.textContent    = 'Disable Alerts';
+      pushBtn.textContent = 'Disable Alerts';
       pushBtn.dataset.active = 'true';
       pushBtn.classList.remove('btn-push-off');
       pushBtn.classList.add('btn-push-on');
       if (pushStatus) pushStatus.textContent = 'Push alerts are enabled for this browser.';
       pushBtn.disabled = false;
     } else {
-      pushBtn.textContent    = 'Enable Alerts';
+      pushBtn.textContent = 'Enable Alerts';
       pushBtn.dataset.active = 'false';
       pushBtn.classList.remove('btn-push-on');
       pushBtn.classList.add('btn-push-off');
@@ -208,12 +208,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const raw     = atob(base64);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
     return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
   }
 
   async function initPush() {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const r of registrations) {
+      if (r.scope && !r.scope.endsWith('/')) await r.unregister();
+    }
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       pushBtn.disabled = true;
       if (pushStatus) pushStatus.textContent = 'Push notifications are not supported in this browser.';
@@ -222,13 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let reg;
     try {
-      reg = await navigator.serviceWorker.register('/static/sw.js');
-      await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('SW ready timeout')), 4000)
-        ),
-      ]);
+      reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      await navigator.serviceWorker.ready;
     } catch (err) {
       setPushUIError('Service worker registration failed.');
       console.error('SW Registration Error:', err);
@@ -253,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const existing = await reg.pushManager.getSubscription();
     if (existing) {
       try {
-        const res  = await fetch(`/api/push/status?endpoint=${encodeURIComponent(existing.endpoint)}`);
+        const res = await fetch(`/api/push/status?endpoint=${encodeURIComponent(existing.endpoint)}`);
         const json = await res.json();
         setPushUI(json.subscribed === true);
       } catch {
