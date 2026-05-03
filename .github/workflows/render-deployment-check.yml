@@ -1,0 +1,70 @@
+name: Render Deployment Check
+on:
+  push:
+    branches: [main]
+concurrency:
+  group: render-deployment-check
+  cancel-in-progress: true
+
+jobs:
+  check-deployment:
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+
+    steps:
+      - name: Set initial status (pending)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: "pending",
+              context: "Render Deployment",
+              description: "Checking deployment..."
+            });
+
+      - name: Wait for deployment
+        id: check
+        run: |
+          URL="https://photonvhealth.onrender.com/health"
+          MAX_RETRIES=10
+          SLEEP_SECONDS=15
+
+          echo "Waiting up to $((MAX_RETRIES * SLEEP_SECONDS)) seconds..."
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i..."
+
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$URL" || echo "000")
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "status=success" >> $GITHUB_OUTPUT
+              echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            sleep $SLEEP_SECONDS
+          done
+
+          echo "status=failed" >> $GITHUB_OUTPUT
+          echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
+          exit 0
+
+      - name: Set final status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = "${{ steps.check.outputs.status }}";
+            const http = "${{ steps.check.outputs.http_code }}";
+
+            await github.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: status === "success" ? "success" : "failure",
+              context: "Render Deployment",
+              description: `HTTP ${http}`
+            });
