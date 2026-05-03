@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let reg;
     try {
-      reg = await navigator.serviceWorker.register('/sw.js');
+      reg = await navigator.serviceWorker.register('/static/sw.js');
       await navigator.serviceWorker.ready;
     } catch (err) {
       setPushUIError('Service worker registration failed.');
