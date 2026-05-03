@@ -182,12 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
       pushBtn.classList.remove('btn-push-off');
       pushBtn.classList.add('btn-push-on');
       if (pushStatus) pushStatus.textContent = 'Push alerts are enabled for this browser.';
+      pushBtn.disabled = false;
     } else {
       pushBtn.textContent    = 'Enable Alerts';
       pushBtn.dataset.active = 'false';
       pushBtn.classList.remove('btn-push-on');
       pushBtn.classList.add('btn-push-off');
       if (pushStatus) pushStatus.textContent = 'You will not receive push alerts.';
+      pushBtn.disabled = false;
     }
   }
 
@@ -216,7 +218,20 @@ document.addEventListener('DOMContentLoaded', () => {
       await navigator.serviceWorker.ready;
     } catch (err) {
       setPushUIError('Service worker registration failed.');
-      console.error(err);
+      console.error('SW Registration Error:', err);
+      return;
+    }
+
+    try {
+      const keyRes = await fetch('/api/push/vapid-public-key');
+      const keyJson = await keyRes.json();
+      if (!keyJson.success) {
+        setPushUIError('Push notifications not configured.');
+        return;
+      }
+    } catch (err) {
+      setPushUIError('Could not verify push configuration.');
+      console.error('VAPID key fetch error:', err);
       return;
     }
 
@@ -254,8 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
           setPushUIError('Could not unsubscribe. Please try again.');
           console.error(err);
+          pushBtn.disabled = false;
         }
-        pushBtn.disabled = false;
 
       } else {
         if (Notification.permission === 'denied') {
@@ -312,8 +327,8 @@ document.addEventListener('DOMContentLoaded', () => {
           setPushUIError('Could not save subscription. Please try again.');
           await subscription.unsubscribe();
           console.error(err);
+          pushBtn.disabled = false;
         }
-        pushBtn.disabled = false;
       }
     });
   }
