@@ -4,6 +4,11 @@ from email.mime.text import MIMEText
 from dotenv import load_dotenv
 import os
 import smtplib
+from flask import request
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(key_func=lambda: (request.json or {}).get("device_id") or get_remote_address(), default_limits=["200 per day", "50 per hour"])
 
 load_dotenv()
 

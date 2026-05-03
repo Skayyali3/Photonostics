@@ -49,6 +49,7 @@ const unsigned long dataInterval = 2000;
 const unsigned long commandInterval = 30000;
 
 String deviceId = "";
+String apiKey = "";
 
 float smooth_light() {
   float sum = 0;
@@ -93,6 +94,7 @@ void data_to_server() {
 
   String json = "{";
   json += "\"device_id\":\"" + deviceId + "\",";
+  json += "\"api_key\":\"" + apiKey + "\",";
   json += "\"power\":" + String(powerVal) + ",";
   json += "\"light\":" + String(adjustedLight) + ",";
   json += "\"percentage\":" + String(percentageLight) + ",";
@@ -131,6 +133,12 @@ void register_device() {
   if (code == 200) {
     String body = http.getString();
     Serial.println("Register response: " + body);
+
+    StaticJsonDocument<256> doc;
+    if (deserializeJson(doc, body) == DeserializationError::Ok) {
+      apiKey = doc["apiKey"] | "";
+      Serial.println("API Key stored!");
+    }
   } else {
     Serial.print("Device registration failed: ");
     Serial.println(code);

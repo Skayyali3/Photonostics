@@ -1,6 +1,9 @@
 from flask import Blueprint, jsonify, request, session
+from secrets import token_hex
+from hashlib import sha256
+
 from db import get_cursor
-from utils import validate_device_id
+from utils import validate_device_id, limiter
 from routes.push import check_and_send_alerts
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -27,8 +30,11 @@ def _post_data_alert_hook(device_id: str, current_data: dict) -> None:
         logging.getLogger(__name__).error("Alert check failed: %s", exc)
 
 @api.route("/register_device", methods=["POST"])
+@limiter.limit("10 per minute")
 def register_device():
     data = request.get_json(silent=True)
+    api_key = token_hex(32)
+    hashed_api_key = sha256(api_key.encode()).hexdigest()
 
     if not data:
         return jsonify(success=False, error="Expected JSON"), 400
@@ -43,26 +49,32 @@ def register_device():
 
     with get_cursor() as cursor:
         cursor.execute(
-            "SELECT 1 FROM devices WHERE device_id = %s",
+            "SELECT api_key FROM devices WHERE device_id = %s",
             (device_id,)
         )
-        if cursor.fetchone():
-            return jsonify(success=True, message="Already registered")
+        
+        existing = cursor.fetchone()
+        
+        if existing:
+            return jsonify(success=True, message="Already registered", apiKey=existing['api_key'])
 
         cursor.execute("""
-            INSERT INTO devices (user_id, device_id, nickname, max_power)
-            VALUES (NULL, %s, %s, %s)
-        """, (device_id, "Unclaimed Device", 0))
+            INSERT INTO devices (user_id, device_id, api_key, nickname, max_power)
+            VALUES (NULL, %s, %s, %s, %s)
+        """, (device_id, hashed_api_key, "Unclaimed Device", 0))
 
-    return jsonify(success=True, message="Device registered")
+    return jsonify(success=True, message="Device registered", apiKey=api_key)
 
 @api.route("/data", methods=["POST"])
+@limiter.limit("60 per minute")
 def api_data():
     data = request.get_json(silent=True)
     if not data:
         return jsonify(success=False, error="Expected JSON"), 400
  
     device_id = (data.get("device_id") or "").strip().upper()
+    api_key = (data.get("api_key") or "").strip()
+    hashed_api_key = sha256(api_key.encode()).hexdigest()
     
     if not device_id:
         return jsonify(success=False, error="device_id required"), 400
@@ -72,9 +84,9 @@ def api_data():
  
     with get_cursor() as cursor:
         cursor.execute("""
-            SELECT max_power, baseline_power, baseline_light
-            FROM devices WHERE device_id = %s
-        """, (device_id,))
+            SELECT max_power, baseline_power
+            FROM devices WHERE device_id = %s and api_key = %s
+        """, (device_id, hashed_api_key))
         row = cursor.fetchone()
     
         if not row:
@@ -82,7 +94,6 @@ def api_data():
     
         maxPower = row['max_power']
         baselinePower = row['baseline_power']
-        baselineLight = row['baseline_light']
     
         power = float(data.get("power", 0))
         light = float(data.get("light", 0))

@@ -30,4 +30,6 @@
 
 [✓] Make everything responsive
 
+[] Resolve any possible Security issues
+
 [] Add Google indexing

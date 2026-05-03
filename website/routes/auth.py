@@ -4,8 +4,9 @@ from datetime import datetime, timedelta, UTC
 import secrets
 import os
 import psycopg2
+import hashlib
 
-from utils import send_reset_email
+from utils import send_reset_email, limiter
 from db import get_cursor
 
 APP_BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:5000/")
@@ -13,6 +14,7 @@ APP_BASE_URL = os.getenv("APP_BASE_URL", "http://127.0.0.1:5000/")
 auth = Blueprint("auth", __name__)
 
 @auth.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def login():
     if request.method == "GET":
         return render_template("login.html", logged_in=False)
@@ -39,6 +41,7 @@ def login():
     return render_template("login.html", logged_in=False, error="Invalid username/email or password")
  
 @auth.route("/signup", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def signup():
     if request.method == "GET":
         return render_template("signup.html", logged_in=False)
@@ -67,6 +70,7 @@ def signup():
     return redirect("/login")
 
 @auth.route("/forgot-password", methods=["GET", "POST"])
+@limiter.limit("5 per hour")
 def forgot_password():
     if request.method == "GET":
         return render_template("forgot_password.html", logged_in=False)
@@ -81,10 +85,11 @@ def forgot_password():
  
         if user:
             token = secrets.token_urlsafe(32)
+            token_hash = hashlib.sha256(token.encode()).hexdigest()
             expires_at = datetime.now(UTC) + timedelta(hours=1)
             cursor.execute(
-                "INSERT INTO password_reset_tokens (token, user_id, expires_at) VALUES (%s, %s, %s)",
-                (token, user['id'], expires_at)
+                "INSERT INTO password_reset_tokens (token_hash, user_id, expires_at) VALUES (%s, %s, %s)",
+                (token_hash, user['id'], expires_at)
             )
             resetLink = f"{APP_BASE_URL}/reset-password/{token}"
             try:
@@ -96,11 +101,12 @@ def forgot_password():
  
 @auth.route("/reset-password/<token>", methods=["GET", "POST"])
 def reset_password(token):
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
     with get_cursor() as cursor:
         cursor.execute("""
             SELECT user_id FROM password_reset_tokens
-            WHERE token = %s AND used = FALSE AND expires_at > %s
-        """, (token, datetime.now(UTC)))
+            WHERE token_hash = %s AND used = FALSE AND expires_at > %s
+        """, (token_hash, datetime.now(UTC)))
         row = cursor.fetchone()
  
         if not row:
@@ -120,8 +126,9 @@ def reset_password(token):
  
         hashed = generate_password_hash(password)
         cursor.execute("UPDATE users SET password_hashed = %s WHERE id = %s", (hashed, row['user_id']))
-        cursor.execute("UPDATE password_reset_tokens SET used = TRUE WHERE token = %s", (token,))
- 
+        cursor.execute("UPDATE password_reset_tokens SET used = TRUE WHERE token = %s", (token_hash,))
+        
+    session.clear()
     return redirect("/login?reset=1")
 
 @auth.route("/logout")

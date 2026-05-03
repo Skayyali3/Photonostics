@@ -53,7 +53,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS devices (
             id SERIAL PRIMARY KEY,
             user_id INTEGER,
-            device_id TEXT UNIQUE NOT NULL, 
+            device_id TEXT UNIQUE NOT NULL,
+            api_key TEXT UNIQUE NOT NULL,
             nickname TEXT, 
             max_power INTEGER,
             baseline_power DOUBLE PRECISION DEFAULT 0,
@@ -80,7 +81,7 @@ def init_db():
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
-            token TEXT PRIMARY KEY,
+            token_hash TEXT PRIMARY KEY,
             user_id INTEGER NOT NULL,
             expires_at TIMESTAMPTZ NOT NULL,
             used BOOLEAN DEFAULT FALSE,

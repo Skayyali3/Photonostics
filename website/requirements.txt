@@ -1,4 +1,6 @@
 Flask
+Flask-Limiter
+Flask-WTF
 psycopg2-binary
 python-dotenv
 pywebpush
