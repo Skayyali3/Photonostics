@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   const devicePanels = document.querySelectorAll('.device-panel[data-device-id]');
 
   if (devicePanels.length > 0) {
@@ -215,13 +223,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let reg;
     try {
       reg = await navigator.serviceWorker.register('/static/sw.js');
-      await navigator.serviceWorker.ready;
+      await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('SW ready timeout')), 4000)
+        ),
+      ]);
     } catch (err) {
       setPushUIError('Service worker registration failed.');
       console.error('SW Registration Error:', err);
       return;
     }
 
+    let vapidKey;
     try {
       const keyRes = await fetch('/api/push/vapid-public-key');
       const keyJson = await keyRes.json();
@@ -229,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setPushUIError('Push notifications not configured.');
         return;
       }
+      vapidKey = keyJson.key;
     } catch (err) {
       setPushUIError('Could not verify push configuration.');
       console.error('VAPID key fetch error:', err);
@@ -247,8 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       setPushUI(false);
     }
-
-    pushBtn.disabled = false;
 
     pushBtn.addEventListener('click', async () => {
       pushBtn.disabled = true;
@@ -288,19 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
-        let vapidKey;
-        try {
-          const keyRes = await fetch('/api/push/vapid-public-key');
-          const keyJson = await keyRes.json();
-          if (!keyJson.success) throw new Error(keyJson.error);
-          vapidKey = keyJson.key;
-        } catch (err) {
-          setPushUIError('Could not fetch server key. Push may not be configured.');
-          pushBtn.disabled = false;
-          console.error(err);
-          return;
-        }
-
         let subscription;
         try {
           subscription = await reg.pushManager.subscribe({
@@ -334,13 +334,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initPush();
-
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
 
 });
