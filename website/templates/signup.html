@@ -6,6 +6,7 @@
  
 <div class="form-container">
   <form action="/signup" method="post" id="signup-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input name="email" type="email" class="form-control" placeholder="Email address" autocomplete="email">
     <input name="username" class="form-control" placeholder="Username" autocomplete="username">
     <input name="password" type="password" class="form-control" placeholder="Password" autocomplete="new-password">

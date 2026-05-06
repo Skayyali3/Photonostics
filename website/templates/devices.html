@@ -7,6 +7,7 @@
 
   <div class="form-container">
     <form id="add-device-form" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="row g-2 justify-content-center">
         <div class="col-12 col-sm-6 col-md-3">
           <input name="device_id" id="f-device-id" placeholder="Device ID" class="form-control" required>
