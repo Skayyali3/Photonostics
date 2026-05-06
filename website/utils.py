@@ -8,7 +8,13 @@ from flask import request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-limiter = Limiter(key_func=lambda: (request.json or {}).get("device_id") or get_remote_address(), default_limits=["200 per day", "50 per hour"])
+def limiter_key():
+    if request.is_json:
+        data = request.get_json(silent=True) or {}
+        return data.get("device_id") or get_remote_address()
+    return get_remote_address()
+
+limiter = Limiter(key_func=limiter_key(), default_limits=["200 per day", "50 per hour"])
 
 load_dotenv()
 
