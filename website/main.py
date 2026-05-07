@@ -37,6 +37,9 @@ app.register_blueprint(web)
 app.register_blueprint(auth)
 app.register_blueprint(push_bp)
 
+csrf.exempt(api)
+csrf.exempt(push_bp)
+
 init_db_pool()
 init_db()
 
