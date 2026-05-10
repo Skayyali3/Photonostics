@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const devicePanels = document.querySelectorAll('.device-panel[data-device-id]');
 
   if (devicePanels.length > 0) {
-    const POLL_INTERVAL = 5000;
+    const POLL_INTERVAL = 10000;
 
     function fmt(val, decimals = 1) {
       if (val === null || val === undefined) return '--';
