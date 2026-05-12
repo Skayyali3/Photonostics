@@ -23,7 +23,9 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
 * **Solar Panel:** To measure power produced + voltage
 * **Buck Converter (Optional):** Connect INA219 VIN- and VIN+ to Buck Converter + which should also be connected to Solar Panel positive
 
-* **Load:** Either connected to Buck Converter or directly to solar panel - if directly: same connection steps as buck conveeter except replace buck converter with load, else no need to think much about this
+* **Load:** Either connected to Buck Converter or directly to solar panel
+    - if directly: same connection steps as buck converter except replace buck converter with load
+    - else: no need to think much about this
 
 * **3.3V battery/5V battery connected directly to USB entry point of ESP32:** Power ESP32 
 
@@ -49,21 +51,26 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
 
 * **WiFiClientSecure.h:** Manage required encryption for the HTTPS requests
 
+* **Preferences.h:** To store device id and device api key in non-voltatile memory of ESP32 (NVS)
+
 ---
 
 ## Software:
 
 ### Tech Used:
 
-* **Flask Backend**
+* **Flask Backend on Render**
 
 * **HTML/CSS/JS/Jinja/Bootstrap - Frontend**
 
 * **PostgreSQL Database on Supabase**
 
+* **Uptimerobot**
+
 * **The Following Libraries:**
 
     - flask: backend microframework
+    - flask_limiter: rate limit requests
     - psycopg2: PostgreSQL database
     - os: get env variables + robots.txt
     - dotenv: load env variables to use
@@ -72,8 +79,12 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
     - secrets: generate auth tokens
     - werkzeug: hash passwords
     - re: regex of device ids
-    - email: to make body of password reset emails
+    - email: make body of password reset emails
     - smtplib: send password reset emails
+    - pywebpush: send the push notifications themselves
+    - json: decode the notification payload
+    - logging: log push notification warning/errors
+    - threading: make response to ESP32 faster
 
 ### Live Demo:
 
