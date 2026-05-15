@@ -31,9 +31,9 @@ def get_db():
         init_db_pool()
     return dbConnectionPool.getconn()
 
-def return_db(connection):
+def return_db(connection, discard: bool = False):
     if dbConnectionPool is not None:
-        dbConnectionPool.putconn(connection)
+        dbConnectionPool.putconn(connection, close=discard)
 
 def init_db():
     connection = get_db()
@@ -144,16 +144,35 @@ def init_db():
     finally:
         return_db(connection)
         
+def _is_connection_alive(connection) -> bool:
+    try:
+        connection.poll()
+        return True
+    except Exception:
+        return False
+
 @contextmanager
 def get_cursor():
     connection = get_db()
+
+    if not _is_connection_alive(connection):
+        return_db(connection, discard=True)
+        connection = get_db()
+
     try:
         cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         yield cursor
         connection.commit()
     except Exception:
-        connection.rollback()
+        try:
+            connection.rollback()
+        except Exception:
+            return_db(connection, discard=True)
+            raise
         raise
     finally:
-        cursor.close()
+        try:
+            cursor.close()
+        except Exception:
+            pass
         return_db(connection)

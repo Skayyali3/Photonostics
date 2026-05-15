@@ -54,7 +54,7 @@ If you didn't request this, you can safely ignore this email.
     msg["From"] = MAIL_FROM
     msg["To"] = receiverAddress
 
-    with smtplib.SMTP(MAIL_HOST, MAIL_PORT) as server:
+    with smtplib.SMTP(MAIL_HOST, MAIL_PORT, timeout=10) as server:
         server.starttls()
         server.login(MAIL_USERNAME, MAIL_PASSWORD)
         server.sendmail(MAIL_FROM, [receiverAddress], msg.as_string())

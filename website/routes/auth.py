@@ -126,7 +126,7 @@ def reset_password(token):
  
         hashed = generate_password_hash(password)
         cursor.execute("UPDATE users SET password_hashed = %s WHERE id = %s", (hashed, row['user_id']))
-        cursor.execute("UPDATE password_reset_tokens SET used = TRUE WHERE token = %s", (token_hash,))
+        cursor.execute("UPDATE password_reset_tokens SET used = TRUE WHERE token_hash = %s", (token_hash,))
         
     session.clear()
     return redirect("/login?reset=1")
