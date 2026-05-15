@@ -1,10 +1,9 @@
 from flask import Flask
 from flask_wtf import CSRFProtect
-from flask_mail import Mail
 from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 import os
-from utils import limiter
+from utils import limiter, mail
 
 from db import init_db, init_db_pool
 from routes.api import api
@@ -36,6 +35,7 @@ app.config.update(
     MAIL_DEFAULT_SENDER=os.getenv("MAIL_FROM", os.getenv("MAIL_USERNAME")),
 )
 
+mail.init_app(app)
 limiter.init_app(app)
 
 csrf = CSRFProtect(app)
