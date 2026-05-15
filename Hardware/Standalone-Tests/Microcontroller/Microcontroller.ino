@@ -70,24 +70,15 @@ void check_alerts() {
   float powerChange = previousPower - powerVal;
 
   if (tempVal > 45 && efficiency < 90) {
-    if (millis() - lastOverheatAlert > alertCooldown) {
-      lastOverheatAlert = millis();
-      Serial.println("[ALERT] Overheat detected.");
-    }
+    Serial.println("[ALERT] Overheat detected.");
   }
 
   if (adjustedLight > baselineLight * 0.8 && efficiency < 75) {
-    if (millis() - lastDustAlert > alertCooldown) {
-      lastDustAlert = millis();
-      Serial.println("[ALERT] Possible dust/soiling detected.");
-    }
+    Serial.println("[ALERT] Possible dust/soiling detected.");
   }
 
   if (lightChange > 200 && powerChange > (previousPower * 0.2)) {
-    if (millis() - lastShadeAlert > alertCooldown) {
-      lastShadeAlert = millis();
-      Serial.println("[ALERT] Sudden shading detected.");
-    }
+    Serial.println("[ALERT] Sudden shading detected."); 
   }
 
   previousLight = adjustedLight;
