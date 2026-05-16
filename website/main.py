@@ -3,7 +3,7 @@ from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 import os
-from utils import limiter, mail
+from utils import limiter
 
 from db import init_db, init_db_pool
 from routes.api import api
@@ -27,15 +27,8 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax", 
     SESSION_REFRESH_EACH_REQUEST=True,
     PERMANENT_SESSION_LIFETIME=3600, # in seconds
-    MAIL_SERVER=os.getenv("MAIL_HOST", "smtp.gmail.com"),
-    MAIL_PORT=int(os.getenv("MAIL_PORT", 587)),
-    MAIL_USE_TLS=True,
-    MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
-    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
-    MAIL_DEFAULT_SENDER=os.getenv("MAIL_FROM", os.getenv("MAIL_USERNAME")),
 )
 
-mail.init_app(app)
 limiter.init_app(app)
 
 csrf = CSRFProtect(app)

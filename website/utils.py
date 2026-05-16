@@ -1,7 +1,9 @@
 import re
 import logging
+import json
+import urllib.request
+import urllib.error
 from db import get_cursor
-from flask_mail import Mail, Message
 from dotenv import load_dotenv
 import os
 from flask import request, has_request_context
@@ -17,15 +19,16 @@ def limiter_key():
     return get_remote_address()
 
 limiter = Limiter(key_func=limiter_key, default_limits=["200 per day", "50 per hour"])
-mail = Mail()
 
 load_dotenv()
 
-MAIL_FROM = os.getenv("MAIL_FROM", os.getenv("MAIL_USERNAME"))
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+MAIL_FROM_EMAIL = os.getenv("MAIL_FROM_EMAIL", "photonvhealth@gmail.com")
+MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "PhotonVHealth")
 
 def validate_device_id(device_id):
     return bool(re.fullmatch(r"PVH_[A-F0-9]{12}", device_id))
-    
+
 def get_user_devices(user_id):
     with get_cursor() as cursor:
         cursor.execute("""
@@ -37,6 +40,9 @@ def get_user_devices(user_id):
     return [{"device_id": r['device_id'], "nickname": r['nickname'], "max_power": r['max_power'], "baseline_power": r['baseline_power'], "baseline_light": r['baseline_light']} for r in rows]
 
 def send_reset_email(receiverAddress, resetLink):
+    if not BREVO_API_KEY:
+        raise RuntimeError("BREVO_API_KEY is not set")
+
     body = f"""Hi,
 
 You requested a password reset for your PhotonVHealth account.
@@ -48,14 +54,28 @@ If you didn't request this, you can safely ignore this email.
 
 — PhotonVHealth
 """
+    payload = json.dumps({
+        "sender": {"name": MAIL_FROM_NAME, "email": MAIL_FROM_EMAIL},
+        "to": [{"email": receiverAddress}],
+        "subject": "PhotonVHealth — Password Reset",
+        "textContent": body,
+    }).encode()
+
+    req = urllib.request.Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=payload,
+        headers={
+            "api-key": BREVO_API_KEY,
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+        method="POST",
+    )
+
     try:
-        msg = Message(
-            subject="PhotonVHealth — Password Reset",
-            recipients=[receiverAddress],
-            body=body,
-            sender=("PhotonVHealth", MAIL_FROM)
-        )
-        mail.send(msg)
-    except Exception as e:
-        logger.error(f"Failed to send reset email: {e}")
-        raise
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            if resp.status not in (200, 201):
+                raise RuntimeError(f"Brevo returned HTTP {resp.status}")
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode(errors="replace")
+        raise RuntimeError(f"Brevo error {e.code}: {error_body}") from e

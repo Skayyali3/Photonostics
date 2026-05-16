@@ -1,7 +1,6 @@
 Flask
 Flask-Limiter
 Flask-WTF
-Flask_Mail
 psycopg2-binary
 python-dotenv
 pywebpush
