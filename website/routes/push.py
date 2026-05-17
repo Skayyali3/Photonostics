@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify, session
 from pywebpush import webpush, WebPushException
-from db import get_cursor
 import os
 import json
 import logging
+
+from db import get_cursor
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +142,7 @@ def check_and_send_alerts(device_id: str, data: dict, prev: dict | None) -> None
         if sent:
             _log_notification(device_id, alert_type, body)
 
-    if temp > 45 and efficiency < 90:
+    if temp >= 35 and efficiency < 90:
         dispatch(
             "overheat",
             "Panel Overheat Detected",

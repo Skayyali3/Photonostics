@@ -29,7 +29,6 @@ Thumbs.db
 *.swo
 
 # Sensitive information
-secrets.h
 *.env
 
 # Python bytecode

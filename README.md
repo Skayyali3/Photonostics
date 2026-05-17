@@ -19,7 +19,7 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
 * **DS18B20 Waterproof:** Temperature
 * **KY-018 LDR:** Light Intensity + part of baseline ratio
 * **INA219:** Measure Power produced + Voltage
-* **ESP32:** Send data to website + Serial monitoring - The Brain
+* **ESP32:** The Brain: Send data to website + Serial monitoring
 * **Solar Panel:** To measure power produced + voltage
 * **Buck Converter (Optional):** Connect INA219 VIN- and VIN+ to Buck Converter + which should also be connected to Solar Panel positive
 
@@ -29,7 +29,7 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
 
 * **3.3V battery/5V battery connected directly to USB entry point of ESP32:** Power ESP32 
 
-### For More Info: [Click Here](https://github.com/Skayyali3/PhotonVHealth/blob/main/Hardware/Connection.md)
+### - For More Info: [Click Here](https://github.com/Skayyali3/PhotonVHealth/blob/main/Hardware/Connection.md)
 
 ### Where to place Components
 
@@ -80,7 +80,7 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
     - flask: backend microframework
     - flask_limiter: rate limit requests
     - psycopg2: PostgreSQL database
-    - os: get env variables + robots.txt
+    - os: get env variables + serve robots.txt and service worker
     - dotenv: load env variables to use
     - contextlib: database cursor automation
     - datetime: inject year to footer + expiry of reset password tokens
@@ -93,6 +93,7 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
     - json: decode the notification payload
     - logging: log push notification warning/errors
     - threading: make response to ESP32 faster
+    - hashlib: hash API keys
 
 ### Live Demo:
 

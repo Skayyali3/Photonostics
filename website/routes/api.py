@@ -11,16 +11,13 @@ api = Blueprint("api", __name__, url_prefix="/api")
 
 def _post_data_alert_hook(device_id: str, current_data: dict) -> None:
     with get_cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT power, light
             FROM sensor_data
             WHERE device_id = %s
             ORDER BY recorded_at DESC
             OFFSET 1 LIMIT 1
-            """,
-            (device_id,),
-        )
+            """,(device_id,))
         prevRow = cursor.fetchone()
  
     prev = dict(prevRow) if prevRow else None

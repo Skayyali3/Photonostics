@@ -1,7 +1,6 @@
 from flask import render_template, request, session, redirect, Blueprint, jsonify, send_from_directory, Response, current_app
 from datetime import datetime
 import os
-import psycopg2
 
 from utils import get_user_devices
 from db import get_cursor
@@ -104,7 +103,8 @@ def delete_device(device_id):
  
     with get_cursor() as cursor:
         cursor.execute(
-            "DELETE FROM devices WHERE device_id = %s AND user_id = %s",
+            "UPDATE devices SET user_id = NULL, nickname = 'Unclaimed Device', max_power = 0 "
+            "WHERE device_id = %s AND user_id = %s",
             (device_id, session["user_id"])
         )
         deleted = cursor.rowcount
@@ -126,10 +126,6 @@ def renew_device_baseline(device_id):
         """, (device_id, session["user_id"]))
 
     return jsonify(success=True)
-
-@web.context_processor
-def inject_year():
-    return {"current_year": datetime.now().year}
 
 @web.route('/robots.txt')
 def robots_txt():

@@ -3,6 +3,8 @@ from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 import os
+from datetime import datetime
+
 from utils import limiter
 
 from db import init_db, init_db_pool
@@ -10,6 +12,9 @@ from routes.api import api
 from routes.web import web
 from routes.auth import auth
 from routes.push import push_bp
+
+ONE_HOUR_IN_S = 3600
+PORT_NUMBER = int(os.getenv("PORT", 5000))
 
 load_dotenv()
 
@@ -26,7 +31,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=True, 
     SESSION_COOKIE_SAMESITE="Lax", 
     SESSION_REFRESH_EACH_REQUEST=True,
-    PERMANENT_SESSION_LIFETIME=3600, # in seconds
+    PERMANENT_SESSION_LIFETIME=ONE_HOUR_IN_S,
 )
 
 limiter.init_app(app)
@@ -41,9 +46,13 @@ app.register_blueprint(push_bp)
 csrf.exempt(api)
 csrf.exempt(push_bp)
 
+@app.context_processor
+def inject_year():
+    return {"current_year": datetime.now().year}
+
 init_db_pool()
 init_db()
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
+    port = PORT_NUMBER
     app.run(host="0.0.0.0", port=port)

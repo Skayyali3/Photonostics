@@ -131,7 +131,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const deviceId = btn.dataset.id;
         if (!confirm(`Remove device "${deviceId}"?`)) return;
 
-        fetch(`/devices/${encodeURIComponent(deviceId)}`, { method: 'DELETE' })
+        fetch(`/devices/${encodeURIComponent(deviceId)}`, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+          }
+        })
           .then(r => r.json())
           .then(json => {
             if (json.success) {
