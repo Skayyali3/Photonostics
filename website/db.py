@@ -14,11 +14,11 @@ def init_db_pool():
     databaseURL = os.getenv("DATABASE_URL")
 
     if databaseURL:
-        dbConnectionPool = pool.SimpleConnectionPool(1, 10, dsn=databaseURL)
+        dbConnectionPool = pool.ThreadedConnectionPool(1, 20, dsn=databaseURL)
     else:
-        dbConnectionPool = pool.SimpleConnectionPool(
+        dbConnectionPool = pool.ThreadedConnectionPool(
             1,
-            10,
+            20,
             host=os.getenv("DB_HOST", "localhost"),
             port=os.getenv("DB_PORT", 5432),
             database=os.getenv("DB_NAME", "photonvhealth"),
@@ -153,10 +153,16 @@ def _is_connection_alive(connection) -> bool:
 
 @contextmanager
 def get_cursor():
-    connection = get_db()
-
-    if not _is_connection_alive(connection):
-        return_db(connection, discard=True)
+    global dbConnectionPool
+    connection = None
+    
+    try:
+        connection = get_db()
+        if not _is_connection_alive(connection):
+            return_db(connection, discard=True)
+            connection = get_db()
+    except Exception:
+        init_db_pool()
         connection = get_db()
 
     try:
@@ -164,15 +170,18 @@ def get_cursor():
         yield cursor
         connection.commit()
     except Exception:
-        try:
-            connection.rollback()
-        except Exception:
-            return_db(connection, discard=True)
-            raise
+        if connection:
+            try:
+                connection.rollback()
+            except Exception:
+                return_db(connection, discard=True)
+                connection = None
+                raise
         raise
     finally:
-        try:
-            cursor.close()
-        except Exception:
-            pass
-        return_db(connection)
+        if connection:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+            return_db(connection)
