@@ -75,6 +75,11 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
 
 * **Uptimerobot**
 
+* **The Following APIs:**
+
+    - VAPID: send push notifications
+    - Brevo: send reset password emails
+
 * **The Following Libraries:**
 
     - flask: backend microframework
@@ -92,8 +97,9 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
     - pywebpush: send the push notifications themselves
     - json: decode the notification payload
     - logging: log push notification warning/errors
-    - threading: make response to ESP32 faster
+    - threading: make responses faster
     - hashlib: hash API keys
+    - concurrent: have 4 thread workers ongoing to send notifications
 
 ### Live Demo:
 
