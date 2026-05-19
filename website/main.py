@@ -32,11 +32,19 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax", 
     SESSION_REFRESH_EACH_REQUEST=True,
     PERMANENT_SESSION_LIFETIME=ONE_HOUR_IN_S,
+    RATELIMIT_DEFAULT="200 per day; 50 per hour"
 )
 
 limiter.init_app(app)
 
 csrf = CSRFProtect(app)
+
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    return response
 
 app.register_blueprint(api)
 app.register_blueprint(web)
@@ -50,9 +58,8 @@ csrf.exempt(push_bp)
 def inject_year():
     return {"current_year": datetime.now().year}
 
-init_db_pool()
-init_db()
-
 if __name__ == "__main__":
+    init_db_pool()
+    init_db()
     port = PORT_NUMBER
     app.run(host="0.0.0.0", port=port)

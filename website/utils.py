@@ -13,12 +13,24 @@ from flask_limiter.util import get_remote_address
 logger = logging.getLogger(__name__)
 
 def limiter_key():
-    if request.is_json and has_request_context:
+    if request.is_json and has_request_context():
         data = request.get_json(silent=True) or {}
-        return data.get("device_id") or get_remote_address()
+        if data.get("device_id"):
+            return f"device:{data.get('device_id')}"
+
+    if has_request_context():
+        email = request.form.get("email") or request.form.get("username")
+        if email:
+            return f"email:{email.strip().lower()}"
+
     return get_remote_address()
 
-limiter = Limiter(key_func=limiter_key, default_limits=["200 per day", "50 per hour"])
+limiter = Limiter(
+    key_func=limiter_key, 
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri=os.getenv("RATELIMIT_STORAGE_URI", "memory://"),
+    strategy="moving-window"
+)
 
 load_dotenv()
 
