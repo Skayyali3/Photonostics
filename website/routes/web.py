@@ -2,7 +2,7 @@ from flask import render_template, request, session, redirect, Blueprint, jsonif
 from datetime import datetime
 import os
 
-from utils import get_user_devices
+from utils import get_user_devices, MAXIMUM_POWER_MILLIWATTS
 from db import get_cursor
 
 web = Blueprint("web", __name__)
@@ -36,6 +36,16 @@ def devices():
     nickname = request.form.get("nickname", "").strip()
     maxPower = request.form.get("max_power", "").strip()
     isAJAX = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    
+    try:
+        maxPowerInt = int(maxPower)
+        if not (0 <= maxPowerInt <= MAXIMUM_POWER_MILLIWATTS):
+            raise ValueError()
+    except (ValueError, TypeError):
+        msg = "Max Power must be a positive integer within valid operating constraints."
+        if isAJAX:
+            return jsonify(success=False, error=msg), 400
+        return render_template("devices.html", logged_in=True, devices=get_user_devices(session["user_id"]), error=msg)
 
     if not deviceID or not nickname or not maxPower:
         msg = "All fields are required."
@@ -48,6 +58,7 @@ def devices():
             "SELECT 1 FROM devices WHERE device_id = %s AND user_id = %s",
             (deviceID, session["user_id"])
         )
+        
         addedAlready = cursor.fetchone()
 
         if addedAlready:
@@ -81,11 +92,20 @@ def devices():
                 error=msg
             )
             
+        cursor.execute("""
+           SELECT 1 FROM devices WHERE device_id = %s 
+        """, (deviceID,))
+        
+        if not cursor.fetchone():
+            msg = "Device ID not found. Ensure your physical hardware monitor is powered on and connected to Wi-Fi first."
+            if isAJAX: return jsonify(success=False, error=msg), 404
+            return render_template("devices.html", logged_in=True, devices=get_user_devices(session["user_id"]), error=msg)
+            
         else:
             cursor.execute("""
                 UPDATE devices SET user_id = %s, nickname = %s, max_power = %s
                 WHERE device_id = %s
-            """, (session["user_id"], nickname, maxPower, deviceID))
+            """, (session["user_id"], nickname, maxPowerInt, deviceID))
 
     if isAJAX:
         return jsonify(success=True, device={
@@ -133,7 +153,7 @@ def robots_txt():
 
 @web.route('/sitemap.xml')
 def sitemap():
-    urls = [{'loc': 'https://photonvhealth.onrender.com', 'lastmod': datetime.now().date()}]
+    urls = [{'loc': 'https://photonvhealth.onrender.com', 'lastmod': datetime.now().date().isoformat()}]
     return Response(render_template('sitemap.xml', urls=urls), mimetype='application/xml')
 
 @web.route("/health")

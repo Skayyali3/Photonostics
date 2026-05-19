@@ -1,16 +1,25 @@
+import os
 import re
 import logging
 import json
 import urllib.request
 import urllib.error
-from db import get_cursor
 from dotenv import load_dotenv
-import os
 from flask import request, has_request_context
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+from db import get_cursor
+
 logger = logging.getLogger(__name__)
+
+MAXIMUM_VOLTAGE = 1000
+MAXIMUM_POWER_WATTS =  500
+MAXIMUM_POWER_MILLIWATTS = MAXIMUM_POWER_WATTS * 1000
+MAXIMUM_PERCENTAGE = 100
+MAXIMUM_TEMPERATURE = 125
+MINIMUM_TEMPERATURE = -45
+MAXIMUM_LIGHT_AU = 100000
 
 def limiter_key():
     if request.is_json and has_request_context():

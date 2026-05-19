@@ -4,18 +4,10 @@ from secrets import token_hex
 from hashlib import sha256
 
 from db import get_cursor
-from utils import validate_device_id, limiter
+from utils import validate_device_id, limiter, MAXIMUM_VOLTAGE, MINIMUM_TEMPERATURE, MAXIMUM_TEMPERATURE, MAXIMUM_POWER_MILLIWATTS, MAXIMUM_PERCENTAGE, MAXIMUM_LIGHT_AU
 from routes.push import check_and_send_alerts
 
 api = Blueprint("api", __name__, url_prefix="/api")
-
-MAXIMUM_VOLTAGE = 1000
-MAXIMUM_POWER_WATTS =  500
-MAXIMUM_POWER_MILLIWATTS = MAXIMUM_POWER_WATTS * 1000
-MAXIMUM_PERCENTAGE = 100
-MAXIMUM_TEMPERATURE = 125
-MINIMUM_TEMPERATURE = -45
-MAXIMUM_LIGHT_AU = 100000
 
 def _post_data_alert_hook(device_id: str, current_data: dict) -> None:
     with get_cursor() as cursor:
