@@ -85,6 +85,10 @@ body {
 Log in + Sign up Pages
 */
 
+.seo-only {
+    display: none;
+}
+
 #login-button,
 #signup-button {
     position: relative;

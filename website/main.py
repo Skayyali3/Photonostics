@@ -43,7 +43,14 @@ csrf = CSRFProtect(app)
 def add_security_headers(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "style-src 'self' https://cdn.jsdelivr.net; "
+        "script-src 'self' https://cdn.jsdelivr.net 'sha256-HYVjnA6FBIzEZeRVREyAzD7iqVhwWjQFnQO06rIyMMk='; "
+        "img-src 'self' data:; "
+        "connect-src 'self'; "
+        "font-src 'self' https://cdn.jsdelivr.net;"
+    )
     return response
 
 app.register_blueprint(api)
