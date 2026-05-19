@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, session
 from pywebpush import webpush, WebPushException
+from concurrent.futures import ThreadPoolExecutor
 import os
 import json
 import logging
@@ -89,13 +90,13 @@ def _recently_alerted(device_id: str, alert_type: str, cooldown_seconds: int = 6
 
 ALERT_COOLDOWN = 60
 
-def check_and_send_alerts(device_id: str, data: dict, prev: dict | None) -> None:
+def check_and_send_alerts(device_id: str, data: dict, prev: dict | None, baseline_power: float, baseline_light: float) -> None:
     if not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
         return
 
-    light      = float(data.get("light")      or 0)
-    power      = float(data.get("power")      or 0)
-    temp       = float(data.get("temp")       or 0)
+    light = float(data.get("light") or 0)
+    power = float(data.get("power") or 0)
+    temp = float(data.get("temp") or 0)
     efficiency = float(data.get("efficiency") or 0)
 
     if prev is None:
@@ -108,16 +109,6 @@ def check_and_send_alerts(device_id: str, data: dict, prev: dict | None) -> None
         return
     if power < 5:
         return
-
-    with get_cursor() as cursor:
-        cursor.execute(
-            "SELECT baseline_power, baseline_light FROM devices WHERE device_id = %s",
-            (device_id,),
-        )
-        row = cursor.fetchone()
-
-    baseline_power = float(row["baseline_power"] or 0) if row else 0
-    baseline_light = float(row["baseline_light"] or 0) if row else 0
 
     lightChange = prevLight - light
     powerChange = prevPower - power
@@ -135,10 +126,12 @@ def check_and_send_alerts(device_id: str, data: dict, prev: dict | None) -> None
             "tag": alert_type,
             "device_id": device_id,
         }
-        sent = 0
-        for sub in subscriptions:
-            if _send_push(sub, payload):
-                sent += 1
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            results = list(executor.map(lambda sub: _send_push(sub, payload), subscriptions))
+
+        sent = sum(1 for success in results if success)
+        
         if sent:
             _log_notification(device_id, alert_type, body)
 
