@@ -6,6 +6,7 @@ import os
 import psycopg2
 import hashlib
 import logging
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +74,7 @@ def signup():
     return redirect("/login")
 
 @auth.route("/forgot-password", methods=["GET", "POST"])
-@limiter.limit("5 per hour")
+@limiter.limit("3 per hour", key_func=lambda: request.form.get("email", "").lower())
 def forgot_password():
     if request.method == "GET":
         return render_template("forgot_password.html", logged_in=False)
@@ -96,10 +97,10 @@ def forgot_password():
             )
             resetLink = f"{APP_BASE_URL}/reset-password/{token}"
             try:
-                send_reset_email(email, resetLink)
+                threading.Thread(target=send_reset_email, args=(email, resetLink)).start()
             except Exception as e:
-                logger.error(f"Failed to send reset email: {e}")
-
+                logger.error(f"Failed to initiate reset email thread: {e}")
+                
     return render_template("forgot_password.html", logged_in=False, success=True)
  
 @auth.route("/reset-password/<token>", methods=["GET", "POST"])
