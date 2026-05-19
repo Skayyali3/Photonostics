@@ -9,6 +9,14 @@ from routes.push import check_and_send_alerts
 
 api = Blueprint("api", __name__, url_prefix="/api")
 
+MAXIMUM_VOLTAGE = 1000
+MAXIMUM_POWER_WATTS =  500
+MAXIMUM_POWER_MILLIWATTS = MAXIMUM_POWER_WATTS * 1000
+MAXIMUM_PERCENTAGE = 100
+MAXIMUM_TEMPERATURE = 125
+MINIMUM_TEMPERATURE = -45
+MAXIMUM_LIGHT_AU = 100000
+
 def _post_data_alert_hook(device_id: str, current_data: dict) -> None:
     with get_cursor() as cursor:
         cursor.execute("""
@@ -54,7 +62,7 @@ def register_device():
         existing = cursor.fetchone()
         
         if existing:
-            return jsonify(success=True, message="Already registered", apiKey=existing['api_key'])
+            return jsonify(success=False, error="Device ID already registered."), 409
 
         cursor.execute("""
             INSERT INTO devices (user_id, device_id, api_key, nickname, max_power)
@@ -82,7 +90,7 @@ def api_data():
  
     with get_cursor() as cursor:
         cursor.execute("""
-            SELECT max_power, baseline_power
+            SELECT max_power, baseline_power, baseline_light
             FROM devices WHERE device_id = %s and api_key = %s
         """, (device_id, hashed_api_key))
         row = cursor.fetchone()
@@ -92,14 +100,19 @@ def api_data():
     
         maxPower = row['max_power']
         baselinePower = row['baseline_power']
+        baselineLight = row['baseline_light']
     
-        power = float(data.get("power", 0))
-        voltage = float(data.get("voltage", 0))
-        light = float(data.get("light", 0))
-        lightIntensity = float(data.get("percentage", 0))
-        temp = float(data.get("temp", 0))
-        efficiency = float(data.get("efficiency", 0))
-
+        try:
+            power = min(max(float(data.get("power", 0)), 0.0), MAXIMUM_POWER_MILLIWATTS)
+            voltage = min(max(float(data.get("voltage", 0)), 0.0), MAXIMUM_VOLTAGE)
+            light = min(max(float(data.get("light", 0)), 0.0), MAXIMUM_LIGHT_AU)
+            lightIntensity = min(max(float(data.get("percentage", 0)), 0.0), MAXIMUM_PERCENTAGE)
+            temp = min(max(float(data.get("temp", 0)), MINIMUM_TEMPERATURE), MAXIMUM_TEMPERATURE)
+            efficiency = min(max(float(data.get("efficiency", 0)), 0.0), MAXIMUM_PERCENTAGE)
+            
+        except (ValueError, TypeError):
+            return jsonify(success=False, error="Invalid parameters"), 400
+            
         health = 0.0
         if maxPower and maxPower > 0 and baselinePower and baselinePower > 0:
             health = min((baselinePower / maxPower) * 100.0, 100.0)
@@ -118,7 +131,7 @@ def api_data():
         threading.Thread(target=_post_data_alert_hook, args=(device_id, {
             "power": power, "light": light,
             "temp": temp, "efficiency": efficiency
-        })).start()
+        }, baselinePower, baselineLight)).start()
  
     return jsonify(success=True, health=round(health, 1))
  
