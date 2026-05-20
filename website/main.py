@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
@@ -43,12 +43,14 @@ csrf = CSRFProtect(app)
 def add_security_headers(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-Content-Type-Options"] = "nosniff"
+    if request.path == "/sitemap.xml":
+        return response
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "style-src 'self' https://cdn.jsdelivr.net; "
         "script-src 'self' https://cdn.jsdelivr.net 'sha256-HYVjnA6FBIzEZeRVREyAzD7iqVhwWjQFnQO06rIyMMk='; "
         "img-src 'self' data:; "
-        "connect-src 'self'; "
+        "connect-src 'self' https://cdn.jsdelivr.net; "
         "font-src 'self' https://cdn.jsdelivr.net;"
     )
     return response
