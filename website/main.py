@@ -3,7 +3,7 @@ from flask_wtf import CSRFProtect
 from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from utils import limiter
 
@@ -13,7 +13,6 @@ from routes.web import web
 from routes.auth import auth
 from routes.push import push_bp
 
-ONE_HOUR_IN_S = 3600
 PORT_NUMBER = int(os.getenv("PORT", 5000))
 
 load_dotenv()
@@ -31,7 +30,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=True, 
     SESSION_COOKIE_SAMESITE="Lax", 
     SESSION_REFRESH_EACH_REQUEST=True,
-    PERMANENT_SESSION_LIFETIME=ONE_HOUR_IN_S,
+    PERMANENT_SESSION_LIFETIME=timedelta(days=30),
     RATELIMIT_DEFAULT="200 per day; 50 per hour"
 )
 

@@ -38,6 +38,7 @@ def login():
         user = cursor.fetchone()
  
     if user and check_password_hash(user['password_hashed'], password):
+        session.permanent = True
         session["user_id"] = user['id']
         session["username"] = user['username']
         return redirect("/dashboard")
