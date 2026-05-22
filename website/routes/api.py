@@ -122,8 +122,9 @@ def api_data():
         
         threading.Thread(target=_post_data_alert_hook, args=(device_id, {
             "power": power, "light": light,
-            "temp": temp, "efficiency": efficiency
-        }, baselinePower, baselineLight)).start()
+            "temp": temp, "efficiency": efficiency, 
+            "baseline_power": baselinePower, "baseline_light": baselineLight
+        },)).start()
  
     return jsonify(success=True, health=round(health, 1))
  

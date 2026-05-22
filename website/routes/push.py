@@ -90,7 +90,7 @@ def _recently_alerted(device_id: str, alert_type: str, cooldown_seconds: int = 6
 
 ALERT_COOLDOWN = 60
 
-def check_and_send_alerts(device_id: str, data: dict, prev: dict | None, baseline_power: float, baseline_light: float) -> None:
+def check_and_send_alerts(device_id: str, data: dict, prev: dict | None) -> None:
     if not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
         return
 
@@ -98,6 +98,8 @@ def check_and_send_alerts(device_id: str, data: dict, prev: dict | None, baselin
     power = float(data.get("power") or 0)
     temp = float(data.get("temp") or 0)
     efficiency = float(data.get("efficiency") or 0)
+    baseline_light = float(data.get("baseline_light") or light)
+    baseline_power = float(data.get("baseline_power") or power) 
 
     if prev is None:
         return
