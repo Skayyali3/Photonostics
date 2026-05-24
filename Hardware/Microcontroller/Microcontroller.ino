@@ -111,6 +111,8 @@ void register_device() {
       pref.putString("api_key", apiKey);
       Serial.println("API Key saved!");
     }
+  } else if (code == 409) {
+    Serial.println("Device already exists on network registry. Please reclaim ownership via web console dashboard.");
   } else {
     Serial.print("Device registration failed: ");
     Serial.println(code);
@@ -211,7 +213,7 @@ void check_alerts() {
   float lightChange = previousLight - adjustedLight;
   float powerChange = previousPower - powerVal;
 
-  if (tempVal > 45 && efficiency < 90) {
+  if (tempVal >= 35 && efficiency < 90) {
     if (millis() - lastOverheatAlert > alertCooldown) {
       lastOverheatAlert = millis();
       Serial.println("[ALERT] Overheat detected.");
