@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}My Devices{% endblock %}
 
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/devices.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="page-content">
   <h2 class="page-header">My Devices</h2>
@@ -61,4 +65,8 @@
     {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/devices.js') }}"></script>
 {% endblock %}

@@ -36,6 +36,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    {% block stylesheets %}{% endblock %}
     <link rel="icon" href="{{ url_for('static', filename='images/icon.png') }}" type="image/png">
     <link rel="icon" href="{{ url_for('static', filename='images/iconx32.png') }}" sizes="32x32" type="image/png">
     <link rel="icon" href="{{ url_for('static', filename='images/iconx16.png') }}" sizes="16x16" type="image/png">
@@ -105,10 +106,10 @@
         </div>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script>
         if (!('serviceWorker' in navigator)) {
             console.warn('Service Workers not supported in this browser.');
         }
     </script>
+    {% block scripts %}{% endblock %}
 </body>

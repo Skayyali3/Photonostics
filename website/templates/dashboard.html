@@ -1,8 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="page-content">
+  <h1 class="page-header">Dashboard</h1>
   <div class="dashboard-topbar">
     <h2 class="page-header mb-0">Live Data</h2>
 
@@ -77,4 +82,8 @@
   </p>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
