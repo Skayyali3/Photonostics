@@ -4,7 +4,7 @@ from secrets import token_hex
 from hashlib import sha256
 
 from db import get_cursor
-from utils import validate_device_id, limiter, MAXIMUM_VOLTAGE, MINIMUM_TEMPERATURE, MAXIMUM_TEMPERATURE, MAXIMUM_POWER_MILLIWATTS, MAXIMUM_PERCENTAGE, MAXIMUM_LIGHT_AU
+from utils import validate_device_id, limiter, MAXIMUM_VOLTAGE, MINIMUM_TEMPERATURE, MAXIMUM_TEMPERATURE, MAXIMUM_POWER_MILLIWATTS, MAXIMUM_CURRENT_MILLIAMPS, MAXIMUM_PERCENTAGE, MAXIMUM_LIGHT_AU
 from routes.push import check_and_send_alerts
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -101,6 +101,7 @@ def api_data():
             lightIntensity = min(max(float(data.get("percentage", 0)), 0.0), MAXIMUM_PERCENTAGE)
             temp = min(max(float(data.get("temp", 0)), MINIMUM_TEMPERATURE), MAXIMUM_TEMPERATURE)
             efficiency = min(max(float(data.get("efficiency", 0)), 0.0), MAXIMUM_PERCENTAGE)
+            current = min(max(float(data.get("current", 0)), 0.0), MAXIMUM_CURRENT_MILLIAMPS)
             
         except (ValueError, TypeError):
             return jsonify(success=False, error="Invalid parameters"), 400
@@ -116,14 +117,14 @@ def api_data():
             """, (power, light, device_id))
     
         cursor.execute("""
-            INSERT INTO sensor_data (device_id, power, voltage, light, light_percentage, temp, efficiency, health)
+            INSERT INTO sensor_data (device_id, power, voltage, current, light, light_percentage, temp, efficiency, health)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (device_id, power, voltage, light, lightIntensity, temp, efficiency, health))
+        """, (device_id, power, voltage, current, light, lightIntensity, temp, efficiency, health))
         
         threading.Thread(target=_post_data_alert_hook, args=(device_id, {
-            "power": power, "light": light,
-            "temp": temp, "efficiency": efficiency, 
-            "baseline_power": baselinePower, "baseline_light": baselineLight
+            "power": power, "current":current,
+            "light": light, "temp": temp, 
+            "efficiency": efficiency, "baseline_power": baselinePower, "baseline_light": baselineLight
         },)).start()
  
     return jsonify(success=True, health=round(health, 1))

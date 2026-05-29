@@ -42,7 +42,7 @@ def init_db():
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
+            id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
             password_hashed TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL
@@ -51,8 +51,8 @@ def init_db():
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS devices (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER,
+            id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            user_id BIGINT,
             device_id TEXT UNIQUE NOT NULL,
             api_key TEXT UNIQUE NOT NULL,
             nickname TEXT, 
@@ -66,10 +66,11 @@ def init_db():
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS sensor_data (
-            id SERIAL PRIMARY KEY,
+            id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             device_id TEXT NOT NULL,
             power DOUBLE PRECISION,
             voltage DOUBLE PRECISION,
+            current DOUBLE PRECISION,
             light DOUBLE PRECISION,
             light_percentage DOUBLE PRECISION,
             temp DOUBLE PRECISION,
@@ -83,7 +84,7 @@ def init_db():
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
             token_hash TEXT PRIMARY KEY,
-            user_id INTEGER NOT NULL,
+            user_id BIGINT NOT NULL,
             expires_at TIMESTAMPTZ NOT NULL,
             used BOOLEAN DEFAULT FALSE,
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -92,11 +93,11 @@ def init_db():
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS push_subscriptions (
-            id         SERIAL PRIMARY KEY,
-            user_id    INTEGER NOT NULL,
-            endpoint   TEXT UNIQUE NOT NULL,
-            p256dh     TEXT NOT NULL,
-            auth       TEXT NOT NULL,
+            id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            user_id BIGINT NOT NULL,
+            endpoint TEXT UNIQUE NOT NULL,
+            p256dh TEXT NOT NULL,
+            auth TEXT NOT NULL,
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -105,11 +106,11 @@ def init_db():
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS push_notifications_log (
-            id         SERIAL PRIMARY KEY,
-            device_id  TEXT NOT NULL,
+            id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            device_id TEXT NOT NULL,
             alert_type TEXT NOT NULL,
-            message    TEXT,
-            sent_at    TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            message TEXT,
+            sent_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(device_id) REFERENCES devices(device_id) ON DELETE CASCADE
         )
         """)

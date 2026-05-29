@@ -96,6 +96,7 @@ def check_and_send_alerts(device_id: str, data: dict, prev: dict | None) -> None
 
     light = float(data.get("light") or 0)
     power = float(data.get("power") or 0)
+    current = float(data.get("current") or 0)
     temp = float(data.get("temp") or 0)
     efficiency = float(data.get("efficiency") or 0)
     baseline_light = float(data.get("baseline_light") or light)
@@ -109,7 +110,7 @@ def check_and_send_alerts(device_id: str, data: dict, prev: dict | None) -> None
 
     if light < 150:
         return
-    if power < 5:
+    if current < 20:
         return
 
     lightChange = prevLight - light

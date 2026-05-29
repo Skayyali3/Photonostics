@@ -28,6 +28,7 @@ float lightVal = 0;
 float tempVal = 0;
 float powerVal = 0;
 float voltageVal = 0;
+float currentVal = 0;
 float efficiency = 0;
 float adjustedLight = 0;
 float percentageLight = 0;
@@ -132,6 +133,7 @@ void data_to_server() {
   json += "\"api_key\":\"" + apiKey + "\",";
   json += "\"power\":" + String(powerVal) + ",";
   json += "\"voltage\":" + String(voltageVal) + ",";
+  json += "\"current\":" + String(currentVal) + ",";
   json += "\"light\":" + String(adjustedLight) + ",";
   json += "\"percentage\":" + String(percentageLight) + ",";
   json += "\"temp\":" + String(tempVal) + ",";
@@ -204,11 +206,10 @@ void check_alerts() {
     previousPower = powerVal;
     return;
   }
-
-  float currentMA = ina219.getCurrent_mA();
+  currentVal = ina219.getCurrent_mA();
 
   if (adjustedLight < 150) return;
-  if (currentMA < 20) return;
+  if (currentVal < 20) return;
 
   float lightChange = previousLight - adjustedLight;
   float powerChange = previousPower - powerVal;
