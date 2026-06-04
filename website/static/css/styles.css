@@ -5,19 +5,19 @@
 body {
     text-align: center;
     margin: 0;
-    background-color: teal;
+    background-color: #152220;
 }
 
 .site-footer {
-    background-color: white;
+    background-color: #1A2A28;
     margin-top: 3rem;
     padding: 1rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 0.9rem;
-    color: #777;
-    border-top: 1px solid #e0e0e0;
+    color: #8AADA8;
+    border-top: 1px solid #2A4540;
 }
 
 .footer-left,
@@ -28,7 +28,7 @@ body {
 }
 
 .site-footer a {
-    color: inherit;
+    color: #C8D8D6;
     text-decoration: none;
     font-weight: 500;
 }
@@ -60,7 +60,7 @@ body {
 /* Page layout */
 
 .page-header {
-    color: white;
+    color: #FFD340;
     margin-bottom: 20px;
     font-weight: bold;
     font-size: clamp(1.25rem, 4vw, 1.75rem);
@@ -91,14 +91,34 @@ body {
     display: none;
 }
 
-#login-button,
-#signup-button {
-    position: relative;
-    overflow: hidden;
+.form-container .form-control {
+    background-color: #1E2F2C;
+    border: 1px solid #2A4540;
+    color: #E6E1D5;
 }
 
 .button-text {
     transition: opacity 0.3s;
+}
+
+.btn-brand {
+    background-color: #FFD340;
+    border-color: #FFD340;
+    color: #152220;
+    font-weight: 600;
+}
+
+.btn-brand:hover {
+    background-color: #F5B800;
+    border-color: #F5B800;
+    color: #152220;
+}
+
+.btn-brand:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 211, 64, 0.35);
+    background-color: #FFD340;
+    border-color: #FFD340;
+    color: #152220;
 }
 
 .form-container {
@@ -124,6 +144,17 @@ body {
     text-align: center;
 }
 
+.form-container .form-control::placeholder {
+    color: #8AADA8;
+}
+
+.form-container .form-control:focus {
+    background-color: #1E2F2C;
+    border-color: #FFD340;
+    color: #E6E1D5;
+    box-shadow: 0 0 0 0.25rem rgba(255, 211, 64, 0.2);
+}
+
 #login-form,
 #signup-form {
     display: flex;
@@ -140,6 +171,7 @@ body {
 }
 
 @media (max-width: 600px) {
+
     #login-form .form-control,
     #signup-form .form-control {
         max-width: 100%;
@@ -147,11 +179,33 @@ body {
 }
 
 .text-custom-link {
-    color: #00f932;
-    -webkit-text-stroke: white 0.15px;
-    text-decoration: underline #00f932;
+    color: #FFD340;
+    -webkit-text-stroke: transparent 0px;
+    text-decoration: underline #FFD340;
 }
 
 .form-control {
     margin-bottom: 15px;
+}
+
+.navbar {
+    background-color: #1A2A28 !important;
+}
+
+.navbar .nav-link,
+.navbar-brand {
+    color: #C8D8D6 !important;
+}
+
+.navbar-brand {
+    color: #FFD340 !important;
+    font-weight: 700;
+}
+
+.navbar .nav-link:hover {
+    color: #FFD340 !important;
+}
+
+.navbar-toggler-icon {
+    filter: invert(1);
 }

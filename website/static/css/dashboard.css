@@ -20,10 +20,10 @@
 }
 
 .device-panel {
-    background: white;
+    background: #1E2F2C;
     border-radius: 16px;
     padding: 1.25rem 1.25rem 1rem;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
     text-align: left;
 }
 
@@ -33,20 +33,20 @@
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 1rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #2A4540;
     padding-bottom: 0.75rem;
 }
 
 .device-nickname {
     font-weight: 700;
     font-size: 1.05rem;
-    color: #1a1a1a;
+    color: #FFFFFF;
     word-break: break-word;
 }
 
 .device-id-badge code {
-    background: #e8f5f0;
-    color: #0e6655;
+    background: #2A2825;
+    color: #FFB800;
     font-size: 0.75rem;
     padding: 2px 7px;
     border-radius: 5px;
@@ -57,20 +57,27 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #aaa;
+    background: #2A4540;
     margin-left: auto;
     flex-shrink: 0;
     transition: background 0.4s;
 }
 
 .live-dot.live {
-    background: #1D9E75;
+    background: #FFD340;
     animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: 0.35; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.35;
+    }
 }
 
 .metric-grid {
@@ -84,14 +91,15 @@
     .metric-grid {
         grid-template-columns: 1fr;
     }
+
     .metric-card--wide {
         grid-column: span 1;
     }
 }
 
 .metric-card {
-    background: #f8fdfb;
-    border: 1px solid #d5ece4;
+    background: #152220;
+    border: 1px solid #2A4540;
     border-radius: 10px;
     padding: 10px 12px;
     display: flex;
@@ -106,25 +114,25 @@
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #888;
+    color: #8AADA8;
     margin-bottom: 2px;
 }
 
 .metric-value {
     font-size: 1.35rem;
     font-weight: 700;
-    color: #198754;
+    color: #FFD340;
     line-height: 1.15;
 }
 
 .metric-unit {
     font-size: 0.72rem;
-    color: #aaa;
+    color: #5A8080;
 }
 
 .health-bar-track {
     height: 6px;
-    background: #e0e0e0;
+    background: #2A4540;
     border-radius: 3px;
     margin-top: 8px;
     overflow: hidden;
@@ -133,14 +141,14 @@
 .health-bar-fill {
     height: 100%;
     width: 0%;
-    background: #1D9E75;
+    background: #FFD340;
     border-radius: 3px;
     transition: width 0.6s ease;
 }
 
 .last-seen {
     font-size: 0.72rem;
-    color: #aaa;
+    color: #5A8080;
     text-align: right;
 }
 
@@ -154,8 +162,8 @@
     border: none;
     padding: 12px;
     border-radius: 10px;
-    background: #198754;
-    color: white;
+    background: #FFD340;
+    color: #152220;
     font-weight: 600;
     cursor: pointer;
     transition: 0.2s ease;
@@ -163,12 +171,14 @@
     font-size: 0.95rem;
 }
 
-.renew-btn:hover    { 
-    background: #157347; 
+.renew-btn:hover {
+    background: #F5B800;
 }
-.renew-btn:disabled { 
-    background: #9ac7b3; 
-    cursor: not-allowed; 
+
+.renew-btn:disabled {
+    background: #5A4A10;
+    color: #8A7A30;
+    cursor: not-allowed;
 }
 
 /* Push notifications */
@@ -206,25 +216,27 @@
     cursor: not-allowed;
 }
 
-.btn-push-off { 
-    background: #198754; 
-    color: white; 
-}
-.btn-push-off:hover:not(:disabled) { 
-    background: #157347; 
+.btn-push-off {
+    background: #FFD340;
+    color: #152220;
 }
 
-.btn-push-on  { 
-    background: #dc3545; 
-    color: white; 
+.btn-push-off:hover:not(:disabled) {
+    background: #F5B800;
 }
-.btn-push-on:hover:not(:disabled)  { 
-    background: #bb2d3b; 
+
+.btn-push-on {
+    background: #D94040;
+    color: white;
+}
+
+.btn-push-on:hover:not(:disabled) {
+    background: #B52A2A;
 }
 
 .push-status-text {
     font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: #8AADA8;
 }
 
 @media (max-width: 600px) {
@@ -232,9 +244,11 @@
         flex-direction: column;
         align-items: flex-start;
     }
+
     .push-control {
         width: 100%;
     }
+
     .btn-push {
         width: 100%;
         text-align: center;
