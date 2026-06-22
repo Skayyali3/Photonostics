@@ -116,8 +116,49 @@ def init_db():
         """)
         
         cursor.execute("""
-            ALTER TABLE sensor_data
-            ADD COLUMN IF NOT EXISTS voltage DOUBLE PRECISION;
+        CREATE TABLE IF NOT EXISTS sensor_data_daily_agg  (
+            id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            device_id TEXT NOT NULL,
+            power DOUBLE PRECISION,
+            voltage DOUBLE PRECISION,
+            current DOUBLE PRECISION,
+            light DOUBLE PRECISION,
+            light_percentage DOUBLE PRECISION,
+            temp DOUBLE PRECISION,
+            efficiency DOUBLE PRECISION,
+            health DOUBLE PRECISION,
+            log_date DATE NOT NULL,
+            CONSTRAINT unique_device_date UNIQUE (device_id, log_date),
+            FOREIGN KEY(device_id) REFERENCES devices(device_id) ON DELETE CASCADE     
+        )
+        """)
+        
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sensor_data_hourly_agg (
+            id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            device_id TEXT NOT NULL,
+            power DOUBLE PRECISION,
+            voltage DOUBLE PRECISION,
+            current DOUBLE PRECISION,
+            light DOUBLE PRECISION,
+            light_percentage DOUBLE PRECISION,
+            temp DOUBLE PRECISION,
+            efficiency DOUBLE PRECISION,
+            health DOUBLE PRECISION,
+            log_time TIMESTAMPTZ NOT NULL,
+            CONSTRAINT unique_device_hour UNIQUE (device_id, log_time),
+            FOREIGN KEY(device_id) REFERENCES devices(device_id) ON DELETE CASCADE     
+        )
+        """)
+        
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_sensor_device_time 
+            ON sensor_data_hourly_agg(device_id, log_time DESC)
+        """)
+        
+        cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_sensor_device_date 
+            ON sensor_data_daily_agg(device_id, log_date DESC)
         """)
 
         cursor.execute("""

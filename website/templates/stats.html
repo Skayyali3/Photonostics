@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/stats.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+  <h1 class="page-header">Analytics</h1>
+
+  {% if not devices %}
+  <p class="text-center text-white mt-5">
+    No devices registered yet. <a href="/devices" class="text-white fw-bold">Add a device</a> to view analytics.
+  </p>
+  {% else %}
+
+  <form method="GET" action="/stats" id="stats-form">
+    <div class="stats-controls-row">
+
+      <div class="stats-control-group">
+        <label class="stats-label" for="sel-device">Device</label>
+        <select name="device_id" id="sel-device" class="stats-select" onchange="this.form.submit()">
+          {% for d in devices %}
+          <option value="{{ d.device_id }}"
+            {% if d.device_id == selected.device_id %}selected{% endif %}>
+            {{ d.nickname }} ({{ d.device_id }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="stats-control-group">
+        <label class="stats-label">Time Range</label>
+        <div class="stats-pill-group">
+          {% for val, label in time_ranges %}
+          <button type="submit" name="time_range" value="{{ val }}"
+            class="stats-pill {% if selected.time_range == val %}active{% endif %}"
+            onclick="syncHidden('time_range','{{ val }}')">
+            {{ label }}
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="stats-controls-row mt-2">
+
+      <div class="stats-control-group">
+        <label class="stats-label">Plot Type</label>
+        <div class="stats-pill-group">
+          <button type="submit" name="plot_type" value="time"
+            class="stats-pill {% if selected.plot_type == 'time' %}active{% endif %}"
+            onclick="syncHidden('plot_type','time')">
+            Over Time
+          </button>
+          <button type="submit" name="plot_type" value="scatter"
+            class="stats-pill {% if selected.plot_type == 'scatter' %}active{% endif %}"
+            onclick="syncHidden('plot_type','scatter')">
+            X vs Y
+          </button>
+        </div>
+      </div>
+
+      {% if selected.plot_type == 'time' %}
+      <div class="stats-control-group">
+        <label class="stats-label" for="sel-y">Y Axis</label>
+        <select name="y_axis" id="sel-y" class="stats-select" onchange="this.form.submit()">
+          {% for val, label in time_y_axes %}
+          <option value="{{ val }}" {% if selected.y_axis == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% else %}
+      <div class="stats-control-group">
+        <label class="stats-label" for="sel-scatter">Axes</label>
+        <select name="scatter_id" id="sel-scatter" class="stats-select" onchange="this.form.submit()">
+            {% for axis in scatter_axes %}
+                <option value="{{ axis[0] }}" {% if selected.scatter_id == axis[0] %}selected{% endif %}>{{ axis[1] }}</option>
+            {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <input type="hidden" name="plot_type"  id="h-plot-type"  value="{{ selected.plot_type }}">
+      <input type="hidden" name="time_range" id="h-time-range" value="{{ selected.time_range }}">
+
+    </div>
+
+  </form>
+
+  <div class="stats-chart-wrap">
+    {% if chart_b64 %}
+    <img class="stats-chart-img" src="data:image/png;base64,{{ chart_b64 }}" alt="Analytics chart">
+    {% else %}
+    <p class="text-center" style="color:#8AADA8; padding: 3rem 0;">No data found for this selection.</p>
+    {% endif %}
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function syncHidden(field, val) {
+    if (field === 'plot_type')  document.getElementById('h-plot-type').value  = val;
+    if (field === 'time_range') document.getElementById('h-time-range').value = val;
+  }
+</script>
+{% endblock %}

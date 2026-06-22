@@ -12,6 +12,7 @@ from routes.api import api
 from routes.web import web
 from routes.auth import auth
 from routes.push import push_bp
+from routes.stats import stats_bp
 
 PORT_NUMBER = int(os.getenv("PORT", 5000))
 
@@ -58,6 +59,7 @@ app.register_blueprint(api)
 app.register_blueprint(web)
 app.register_blueprint(auth)
 app.register_blueprint(push_bp)
+app.register_blueprint(stats_bp)
 
 csrf.exempt(api)
 csrf.exempt(push_bp)
