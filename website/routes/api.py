@@ -118,7 +118,7 @@ def api_data():
     
         cursor.execute("""
             INSERT INTO sensor_data (device_id, power, voltage, current, light, light_percentage, temp, efficiency, health)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (device_id, power, voltage, current, light, lightIntensity, temp, efficiency, health))
         
         threading.Thread(target=_post_data_alert_hook, args=(device_id, {
