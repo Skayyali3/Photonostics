@@ -13,10 +13,10 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: "PhotonVHealth Alert", body: event.data ? event.data.text() : "" };
+    data = { title: "Photonostics Alert", body: event.data ? event.data.text() : "" };
   }
 
-  const title   = data.title   || "PhotonVHealth";
+  const title   = data.title   || "Photonostics";
   const options = {
     body:     data.body    || "",
     tag:      data.tag     || "pvh-alert",

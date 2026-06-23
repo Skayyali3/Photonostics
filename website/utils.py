@@ -49,8 +49,8 @@ limiter = Limiter(
 load_dotenv()
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
-MAIL_FROM_EMAIL = os.getenv("MAIL_FROM_EMAIL", "photonvhealth@gmail.com")
-MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "PhotonVHealth")
+MAIL_FROM_EMAIL = os.getenv("MAIL_FROM_EMAIL", "Photonostics@gmail.com")
+MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Photonostics")
 
 def validate_device_id(device_id):
     return bool(re.fullmatch(r"PVH_[A-F0-9]{12}", device_id))
@@ -71,19 +71,19 @@ def send_reset_email(receiverAddress, resetLink):
 
     body = f"""Hi,
 
-You requested a password reset for your PhotonVHealth account.
+You requested a password reset for your Photonostics account.
 
 Click the link below to reset your password (valid for 1 hour):
 {resetLink}
 
 If you didn't request this, you can safely ignore this email.
 
-— PhotonVHealth
+— Photonostics
 """
     payload = json.dumps({
         "sender": {"name": MAIL_FROM_NAME, "email": MAIL_FROM_EMAIL},
         "to": [{"email": receiverAddress}],
-        "subject": "PhotonVHealth — Password Reset",
+        "subject": "Photonostics — Password Reset",
         "textContent": body,
     }).encode()
 

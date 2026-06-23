@@ -1,6 +1,6 @@
-# PhotonVHealth - Solar Panel Efficiency Monitoring
+# Photonostics - Solar Panel Efficiency Monitoring
 
-Welcome to PhotonVHealth for solar panel efficiency monitoring, especially useful for DIY project users. My monitor makes sure external factors such as: 
+Welcome to Photonostics for solar panel efficiency monitoring, especially useful for DIY project users. My monitor makes sure external factors such as: 
 
 * Dust Accumulation
 
@@ -29,7 +29,7 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
 
 * **3.3V battery/5V battery connected directly to USB entry point of ESP32:** Power ESP32 
 
-### - For More Info: [Click Here](https://github.com/Skayyali3/PhotonVHealth/blob/main/Hardware/Connection.md)
+### - For More Info: [Click Here](https://github.com/Skayyali3/Photonostics/blob/main/Hardware/Connection.md)
 
 ### Where to place Components
 
@@ -103,16 +103,16 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
 
 ### Live Demo:
 
-To check out the website: **[Click Here](https://photonvhealth.onrender.com/)**
+To check out the website: **[Click Here](https://photonostics.onrender.com/)**
 
 ---
 
 ## Licensing:
 
 The device itself is licensed under the MIT license - may be edited upon, improved, etc
-For further details: **[Click Here](https://github.com/Skayyali3/PhotonVHealth/blob/main/Hardware/LICENSE)**
+For further details: **[Click Here](https://github.com/Skayyali3/Photonostics/blob/main/Hardware/LICENSE)**
 
-The website is licensed under the GNU GPL V3 license - For further details: **[Click Here](https://github.com/Skayyali3/PhotonVHealth/blob/main/website/LICENSE)**
+The website is licensed under the GNU GPL V3 license - For further details: **[Click Here](https://github.com/Skayyali3/Photonostics/blob/main/website/LICENSE)**
 
 ## Author:
 **Saif Kayyali**

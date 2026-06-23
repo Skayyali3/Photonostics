@@ -1,14 +1,8 @@
-/* ==========================================
-   Devices Page Layout & Forms
-   ========================================== */
-
-/* Page Header Matching Your Logo Yellow */
 .page-header {
     color: #FFB800 !important;
     font-weight: 700;
 }
 
-/* Style Form Inputs to match Dark Theme */
 .form-container .form-control {
     background-color: #22201C !important;
     border: 1px solid #3A3630 !important;
@@ -24,7 +18,6 @@
     box-shadow: 0 0 0 0.25rem rgba(255, 184, 0, 0.25) !important;
 }
 
-/* Add Device Button - Logo Gold */
 #add-btn {
     background-color: #FFB800 !important;
     border-color: #FFB800 !important;
@@ -37,10 +30,6 @@
     border-color: #E0A200 !important;
 }
 
-/* ==========================================
-   Devices Table Styling (No More Stark White)
-   ========================================== */
-
 .devices-table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -50,27 +39,25 @@
 }
 
 .devices-table {
-    background-color: #1C1B19 !important; /* Matches your dashboard card dark tone */
+    background-color: #1C1B19 !important;
     border-radius: 12px;
     overflow: hidden;
     min-width: 480px;
     width: 100%;
-    color: #E6E1D5 !important; /* Off-white text */
+    color: #E6E1D5 !important;
     border-color: #2A2825 !important;
 }
 
-/* Table Header */
 .devices-table thead th {
     background-color: #22201C !important;
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #A39E93 !important; /* Muted gold/gray header text */
+    color: #A39E93 !important;
     border-bottom: 2px solid #3A3630 !important;
     padding: 1rem;
 }
 
-/* Table Rows */
 .devices-table tbody tr {
     border-bottom: 1px solid #2A2825 !important;
 }
@@ -81,23 +68,20 @@
     color: #E6E1D5 !important;
 }
 
-/* Hover effect matching your brand warmth */
 .table-hover tbody tr:hover td {
     background-color: rgba(255, 184, 0, 0.04) !important; 
 }
 
-/* Device ID Code Chip - Eliminating Teal */
 .devices-table td code {
     background: #2A2825;
     padding: 4px 8px;
     border-radius: 6px;
     font-size: 0.85rem;
-    color: #FFB800; /* Subtle gold text for the ID */
+    color: #FFB800;
     word-break: break-all;
     border: 1px solid #3A3630;
 }
 
-/* Remove Button - Matching your logo's heart red */
 .delete-btn {
     min-height: 36px;
     white-space: nowrap;

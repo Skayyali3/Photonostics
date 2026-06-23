@@ -21,7 +21,7 @@ def init_db_pool():
             20,
             host=os.getenv("DB_HOST", "localhost"),
             port=os.getenv("DB_PORT", 5432),
-            database=os.getenv("DB_NAME", "photonvhealth"),
+            database=os.getenv("DB_NAME", "Photonostics"),
             user=os.getenv("DB_USER", "postgres"),
             password=os.getenv("DB_PASSWORD", ""),
         )

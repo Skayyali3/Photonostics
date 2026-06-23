@@ -153,7 +153,7 @@ def robots_txt():
 
 @web.route('/sitemap.xml')
 def sitemap():
-    urls = [{'loc': 'https://photonvhealth.onrender.com', 'lastmod': datetime.now().date().isoformat()}]
+    urls = [{'loc': 'https://photonostics.onrender.com', 'lastmod': datetime.now().date().isoformat()}]
     return Response(render_template('sitemap.xml', urls=urls), mimetype='application/xml')
 
 @web.route("/health")

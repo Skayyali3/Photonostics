@@ -1,5 +1,5 @@
 /*
- * PhotonVHealth - Solar Panel Efficiency Monitoring System
+ * Photonostics - Solar Panel Efficiency Monitoring System
  * ESP32 Microcontroller Prototyping
 */
 
@@ -76,7 +76,7 @@ float read_temperature() {
 
 void connect_to_wifi() {
   WiFiManager wm;
-  if (!wm.autoConnect("PhotonVHealth-Setup")) {
+  if (!wm.autoConnect("Photonostics-Setup")) {
     ESP.restart();
   }
 }
@@ -93,7 +93,7 @@ void register_device() {
   if (WiFi.status() != WL_CONNECTED) return;
 
   HTTPClient http;
-  connect_via_https(http, "https://photonvhealth.onrender.com/api/register_device", true);
+  connect_via_https(http, "https://photonostics.onrender.com/api/register_device", true);
 
   String json = "{";
   json += "\"device_id\":\"" + deviceId + "\"";
@@ -126,7 +126,7 @@ void data_to_server() {
   if (WiFi.status() != WL_CONNECTED) return;
 
   HTTPClient http;
-  connect_via_https(http, "https://photonvhealth.onrender.com/api/data", true);
+  connect_via_https(http, "https://photonostics.onrender.com/api/data", true);
 
   String json = "{";
   json += "\"device_id\":\"" + deviceId + "\",";
@@ -161,7 +161,7 @@ void check_commands() {
   if (WiFi.status() != WL_CONNECTED) return;
 
   HTTPClient http;
-  String commandsUrl = "https://photonvhealth.onrender.com/api/commands/" + deviceId;
+  String commandsUrl = "https://photonostics.onrender.com/api/commands/" + deviceId;
   connect_via_https(http, commandsUrl, false);
 
   int statusCode = http.GET();
@@ -242,7 +242,7 @@ void check_alerts() {
 void setup() {
   Serial.begin(115200);
   Serial.println();
-  Serial.println("PhotonVHealth Setup: Initialized...");
+  Serial.println("Photonostics Setup: Initialized...");
 
   pref.begin("pvh-settings", false);
 

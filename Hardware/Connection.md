@@ -56,4 +56,4 @@ Use this setup if you are connecting your load directly to the solar panel's out
 2. **Configure the Pull-Up:** Place a **4.7kΩ resistor** directly between the DS18B20 Data wire (GPIO 4) and the 3.3V rail. Without this resistor, your console will output `85.0 °C` or disconnect errors.
 3. **Verify the Solar Loop:** Ensure the panel's positive lead touches **only** `VIN(+)` on the INA219 breakout board. The load must consume downstream power from `VIN(-)`.
 4. **Boot and Test:** Flash the testing script via the Arduino IDE. Open your Serial Monitor at **115200 baud** to see live metrics printing every 2 seconds.
-5. **Test the following code first before the main microcontroller:** *[Click Here](https://github.com/Skayyali3/PhotonVHealth/blob/main/Hardware/Standalone-Tests/Microcontroller/Microcontroller.ino)*
+5. **Test the following code first before the main microcontroller:** *[Click Here](https://github.com/Skayyali3/Photonostics/blob/main/Hardware/Standalone-Tests/Microcontroller/Microcontroller.ino)*
