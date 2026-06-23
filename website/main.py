@@ -47,8 +47,8 @@ def add_security_headers(response):
         return response
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "style-src 'self' https://cdn.jsdelivr.net; "
-        "script-src 'self' https://cdn.jsdelivr.net 'sha256-HYVjnA6FBIzEZeRVREyAzD7iqVhwWjQFnQO06rIyMMk='; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net 'sha256-HYVjnA6FBIzEZeRVREyAzD7iqVhwWjQFnQO06rIyMMk='; "
         "img-src 'self' data:; "
         "connect-src 'self' https://cdn.jsdelivr.net; "
         "font-src 'self' https://cdn.jsdelivr.net;"
