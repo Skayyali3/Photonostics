@@ -88,7 +88,7 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
     - os: get env variables + serve robots.txt and service worker
     - dotenv: load env variables to use
     - contextlib: database cursor automation
-    - datetime: inject year to footer + expiry of reset password tokens
+    - datetime: inject year to footer, expiry of reset password tokens and making graphs based off timespan
     - secrets: generate auth tokens
     - werkzeug: hash passwords
     - re: regex of device ids
@@ -100,6 +100,9 @@ don't cause sudden losses in the efficiency of your panel(s) while going unnotic
     - threading: make responses faster
     - hashlib: hash API keys
     - concurrent: have 4 thread workers ongoing to send notifications
+    - matplotlib: generate and plot the graphs used in the Analytics page
+    - base64: render graph as png into html template
+    - io: stores generated graph in internal RAM instead of creating a new image file for each graph
 
 ### Live Demo:
 

@@ -14,31 +14,31 @@ from utils import get_user_devices
 stats_bp = Blueprint("stats", __name__)
 
 TIME_Y_AXES = [
-    ("power",      "Power (mW)"),
-    ("voltage",    "Voltage (V)"),
+    ("power", "Power (mW)"),
+    ("voltage", "Voltage (V)"),
     ("efficiency", "Efficiency (%)"),
-    ("health",     "Health (%)"),
-    ("temp",       "Temperature (°C)"),
-    ("light",      "Light (a.u.)"),
-    ("current",    "Current (mA)"),
+    ("health", "Health (%)"),
+    ("temp", "Temperature (°C)"),
+    ("light", "Light (a.u.)"),
+    ("current", "Current (mA)"),
 ]
 
 SCATTER_AXES = [
-    ("power_vs_light",      "Power vs Light Intensity",  "light", "Light (a.u.)",   "power",      "Power (mW)"),
-    ("efficiency_vs_light", "Efficiency vs Light",        "light", "Light (a.u.)",   "efficiency", "Efficiency (%)"),
-    ("power_vs_temp",       "Power vs Temperature",       "temp",  "Temperature (°C)","power",     "Power (mW)"),
-    ("efficiency_vs_temp",  "Efficiency vs Temperature",  "temp",  "Temperature (°C)","efficiency","Efficiency (%)"),
-    ("health_vs_temp",      "Health vs Temperature",      "temp",  "Temperature (°C)","health",    "Health (%)"),
+    ("power_vs_light", "Power vs Light Intensity", "light", "Light (a.u.)", "power", "Power (mW)"),
+    ("efficiency_vs_light", "Efficiency vs Light", "light", "Light (a.u.)", "efficiency", "Efficiency (%)"),
+    ("power_vs_temp", "Power vs Temperature", "temp", "Temperature (°C)", "power", "Power (mW)"),
+    ("efficiency_vs_temp", "Efficiency vs Temperature", "temp", "Temperature (°C)", "efficiency", "Efficiency (%)"),
+    ("health_vs_temp", "Health vs Temperature", "temp", "Temperature (°C)", "health", "Health (%)"),
 ]
 
 SCATTER_IDS = {s[0]: s for s in SCATTER_AXES}
 
 TIME_RANGES = [
-    ("yesterday",  "Yesterday"),
-    ("3months",    "Last 3 Months"),
-    ("6months",    "Last 6 Months"),
-    ("9months",    "Last 9 Months"),
-    ("1year",      "Last Year"),
+    ("yesterday", "Yesterday"),
+    ("3months", "Last 3 Months"),
+    ("6months", "Last 6 Months"),
+    ("9months", "Last 9 Months"),
+    ("1year", "Last Year"),
 ]
 
 def _apply_theme(fig, ax):
@@ -144,9 +144,6 @@ def _render_time_chart(xs, ys, x_label, y_label, title, time_range) -> str:
                 markersize=3, markerfacecolor="#FFD340")
         ax.fill_between(xs, ys, alpha=0.12, color="#FFD340")
 
-        import matplotlib.dates as mdates
-        import datetime as _dt
-
         if time_range == "yesterday":
             ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
             ax.xaxis.set_major_locator(mdates.HourLocator(interval=2))
@@ -164,7 +161,6 @@ def _render_time_chart(xs, ys, x_label, y_label, title, time_range) -> str:
     ax.set_title(title, fontsize=11, pad=10)
     fig.tight_layout()
     return _chart_to_b64(fig)
-
 
 def _render_scatter_chart(xs, ys, x_label, y_label, title) -> str:
     fig, ax = plt.subplots(figsize=(9, 4))
