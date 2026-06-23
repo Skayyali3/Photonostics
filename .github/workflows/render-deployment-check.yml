@@ -33,7 +33,7 @@ jobs:
       - name: Wait for deployment
         id: check
         run: |
-          URL="https://photonvhealth.onrender.com/health"
+          URL="https://photonostics.onrender.com/health"
           MAX_RETRIES=10
           SLEEP_SECONDS=15
 
