@@ -6,7 +6,14 @@ from contextlib import contextmanager
 
 load_dotenv()
 
-dbConnectionPool = None  
+dbConnectionPool = None
+
+KEEPALIVE_KWARGS = {
+    "keepalives": 1,
+    "keepalives_idle": 60,
+    "keepalives_interval": 10,
+    "keepalives_count": 5,
+}
 
 def init_db_pool():
     global dbConnectionPool
@@ -14,16 +21,17 @@ def init_db_pool():
     databaseURL = os.getenv("DATABASE_URL")
 
     if databaseURL:
-        dbConnectionPool = pool.ThreadedConnectionPool(1, 20, dsn=databaseURL)
+        dbConnectionPool = pool.ThreadedConnectionPool(1, 20, dsn=databaseURL, **KEEPALIVE_KWARGS)
     else:
         dbConnectionPool = pool.ThreadedConnectionPool(
             1,
             20,
             host=os.getenv("DB_HOST", "localhost"),
             port=os.getenv("DB_PORT", 5432),
-            database=os.getenv("DB_NAME", "Photonostics"),
+            database=os.getenv("DB_NAME", "photonostics"),
             user=os.getenv("DB_USER", "postgres"),
             password=os.getenv("DB_PASSWORD", ""),
+            **KEEPALIVE_KWARGS
         )
 
 def get_db():
@@ -32,8 +40,11 @@ def get_db():
     return dbConnectionPool.getconn()
 
 def return_db(connection, discard: bool = False):
-    if dbConnectionPool is not None:
-        dbConnectionPool.putconn(connection, close=discard)
+    if dbConnectionPool is not None and connection is not None:
+        try:
+            dbConnectionPool.putconn(connection, close=discard)
+        except Exception:
+            pass
 
 def init_db():
     connection = get_db()
@@ -152,7 +163,7 @@ def init_db():
         """)
         
         cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_sensor_device_time 
+        CREATE INDEX IF NOT EXISTS idx_sensor_device_hour
             ON sensor_data_hourly_agg(device_id, log_time DESC)
         """)
         
@@ -188,7 +199,7 @@ def init_db():
         
 def _is_connection_alive(connection) -> bool:
     try:
-        connection.poll()
+        connection.cursor().execute("SELECT 1")
         return True
     except Exception:
         return False
