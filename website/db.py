@@ -18,6 +18,13 @@ KEEPALIVE_KWARGS = {
 def init_db_pool():
     global dbConnectionPool
 
+    if dbConnectionPool is not None:
+        try:
+            dbConnectionPool.closeall()
+        except Exception:
+            pass
+        dbConnectionPool = None
+
     databaseURL = os.getenv("DATABASE_URL")
 
     if databaseURL:
@@ -208,15 +215,28 @@ def _is_connection_alive(connection) -> bool:
 def get_cursor():
     global dbConnectionPool
     connection = None
-    
-    try:
-        connection = get_db()
-        if not _is_connection_alive(connection):
-            return_db(connection, discard=True)
+
+    for attempt in range(2):
+        try:
             connection = get_db()
-    except Exception:
-        init_db_pool()
-        connection = get_db()
+            if not _is_connection_alive(connection):
+                return_db(connection, discard=True)
+                connection = None
+                if attempt == 0:
+                    init_db_pool()
+                    continue
+                raise RuntimeError("Could not get a live DB connection")
+            break
+        except RuntimeError:
+            raise
+        except Exception:
+            if connection:
+                return_db(connection, discard=True)
+                connection = None
+            if attempt == 0:
+                init_db_pool()
+            else:
+                raise
 
     try:
         cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
